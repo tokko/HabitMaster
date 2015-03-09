@@ -39,6 +39,7 @@ dependencies {
     repositories {
         mavenCentral()
     }
+    compile "joda-time:joda-time:2.3"
 
     // Espresso
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.0')

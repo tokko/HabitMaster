@@ -1,4 +1,4 @@
-package com.tokko.activity;
+package com.tokko.provider;
 
 import com.tokko.R;
 import com.tokko.MainActivity;

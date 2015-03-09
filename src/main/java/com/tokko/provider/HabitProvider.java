@@ -2,13 +2,42 @@ package com.tokko.provider;
 
 import android.content.ContentProvider;
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 
 public class HabitProvider extends ContentProvider {
     public static final String AUTHORITY = "com.tokko.provider.HabitProvider";
 
+    public static final String DATABASE_NAME = "habitmaster";
+
+    public static final String TABLE_HABIT_GROUPS = "habitgroups";
+
+    public static final String HABIT_GROUP_ID = "_ID";
+    public static final String HABIT_GROUP_TITLE = "title";
+    public static final String HABIT_GROUP_TIME = "time";
+
+    DatabaseOpenHelper db;
+    SQLiteDatabase sdb;
+
     public HabitProvider() {
+    }
+
+    public int seed(int numEntries, String habitGroupPrefix, long habitGroupTimeStart, long habitGroupTimeIncrement) {
+        sdb = db.getWritableDatabase();
+        sdb.beginTransaction();
+        int inserted = 0;
+        while (numEntries-- > 0) {
+            ContentValues cv = new ContentValues();
+            cv.put(HABIT_GROUP_TITLE, habitGroupPrefix + numEntries);
+            cv.put(HABIT_GROUP_TIME, habitGroupTimeStart + habitGroupTimeIncrement * numEntries);
+            inserted += sdb.insertOrThrow(TABLE_HABIT_GROUPS, null, cv);
+        }
+        sdb.setTransactionSuccessful();
+        sdb.endTransaction();
+        return inserted;
     }
 
     @Override
@@ -32,8 +61,8 @@ public class HabitProvider extends ContentProvider {
 
     @Override
     public boolean onCreate() {
-        // TODO: Implement this to initialize your content provider on startup.
-        return false;
+        db = new DatabaseOpenHelper(getContext());
+        return true;
     }
 
     @Override
@@ -48,5 +77,24 @@ public class HabitProvider extends ContentProvider {
                       String[] selectionArgs) {
         // TODO: Implement this to handle requests to update one or more rows.
         throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    private class DatabaseOpenHelper extends SQLiteOpenHelper {
+
+        private static final int DATABASE_VERSION = 1;
+
+        public DatabaseOpenHelper(Context context) {
+            super(context, DATABASE_NAME, null, DATABASE_VERSION);
+        }
+
+        @Override
+        public void onCreate(SQLiteDatabase db) {
+
+        }
+
+        @Override
+        public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+
+        }
     }
 }

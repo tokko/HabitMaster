@@ -1,12 +1,11 @@
-package com.tokko.activity;
+package com.tokko.provider;
 
 import android.content.ContentResolver;
-
-import com.tokko.provider.HabitProvider;
 
 import junit.framework.Assert;
 import junit.framework.TestCase;
 
+import org.joda.time.DateTimeConstants;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,6 +27,7 @@ public class HabitProviderTests extends TestCase {
         mContentResolver = Robolectric.application.getContentResolver();
         mProvider.onCreate();
         ShadowContentResolver.registerProvider(HabitProvider.AUTHORITY, mProvider);
+        mProvider.seed(20, "HabitGroup", 0, DateTimeConstants.MILLIS_PER_HOUR);
     }
 
     @Test
