@@ -19,6 +19,8 @@ public class HabitProvider extends ContentProvider {
     public static final String HABIT_GROUP_TITLE = "title";
     public static final String HABIT_GROUP_TIME = "time";
 
+    public static final Uri URI_GET_HABIT_GROUPS = Uri.parse("");
+
     DatabaseOpenHelper db;
     SQLiteDatabase sdb;
 
