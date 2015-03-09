@@ -42,7 +42,7 @@ public class HabitProviderTests extends TestCase {
 
     @Test
     public void getHabitGroups() {
-        Cursor c = mContentResolver.query(HabitProvider.URI_GET_HABIT_GROUPS, null, null, null, HabitProvider.HABIT_GROUP_TITLE + " DESC");
+        Cursor c = mContentResolver.query(HabitProvider.URI_GET_HABIT_GROUPS, null, null, null, HabitProvider.HABIT_GROUP_ID + " DESC");
         assertNotNull(c);
         assertEquals(NUM_HABIT_GROUPS, c.getCount());
         assertEquals(3, c.getColumnNames().length);
@@ -68,12 +68,13 @@ public class HabitProviderTests extends TestCase {
         assertTrue(c.getColumnIndex(HabitProvider.HABIT_GROUP_ID) >= 0);
         assertTrue(c.getColumnIndex(HabitProvider.HABIT_GROUP_TIME) >= 0);
         assertTrue(c.getColumnIndex(HabitProvider.HABIT_GROUP_TITLE) >= 0);
+        assertTrue(c.moveToFirst());
         assertEquals(title, c.getString(c.getColumnIndex(HabitProvider.HABIT_GROUP_TITLE)));
     }
 
     @Test
     public void getHabitGroupTitles() {
-        Cursor c = mContentResolver.query(HabitProvider.URI_GET_HABIT_GROUPS, new String[]{HabitProvider.HABIT_GROUP_TITLE}, null, null, HabitProvider.HABIT_GROUP_TITLE + " DESC");
+        Cursor c = mContentResolver.query(HabitProvider.URI_GET_HABIT_GROUPS, new String[]{HabitProvider.HABIT_GROUP_TITLE}, null, null, HabitProvider.HABIT_GROUP_ID + " DESC");
         assertNotNull(c);
         assertEquals(NUM_HABIT_GROUPS, c.getCount());
         assertEquals(1, c.getColumnNames().length);
@@ -85,4 +86,10 @@ public class HabitProviderTests extends TestCase {
             assertEquals(HABIT_GROUP_PREFIX + postfix++, c.getString(c.getColumnIndex(HabitProvider.HABIT_GROUP_TITLE)));
         }
     }
+
+    @Test(expected = IllegalStateException.class)
+    public void queryInvalidUri_ThrowsIllegalStateException() {
+        mContentResolver.query(HabitProvider.URI_GET_HABIT_INVALID, null, null, null, null);
+    }
+
 }

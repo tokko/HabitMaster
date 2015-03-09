@@ -3,6 +3,7 @@ package com.tokko.provider;
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -19,12 +20,23 @@ public class HabitProvider extends ContentProvider {
     public static final String HABIT_GROUP_TITLE = "title";
     public static final String HABIT_GROUP_TIME = "time";
 
-    public static final Uri URI_GET_HABIT_GROUPS = Uri.parse("");
-
+    private static final int KEY_INVALID = 0;
+    public static final Uri URI_GET_HABIT_INVALID = makeUri(KEY_INVALID, "SLASK");
+    private static final int KEY_GET_HABIT_GROUPS = 1;
+    private static final String ACTION_GET_HABIT_GROUPS = "GET_HABIT_GROUPS";
+    public static final Uri URI_GET_HABIT_GROUPS = makeUri(KEY_GET_HABIT_GROUPS, ACTION_GET_HABIT_GROUPS);
+    private static UriMatcher um;
     DatabaseOpenHelper db;
     SQLiteDatabase sdb;
 
     public HabitProvider() {
+    }
+
+    private static Uri makeUri(int keyGetHabitGroups, String action) {
+        if (um == null)
+            um = new UriMatcher(UriMatcher.NO_MATCH);
+        um.addURI(AUTHORITY, action, keyGetHabitGroups);
+        return Uri.parse(String.format("content://%s/%s", AUTHORITY, action));
     }
 
     public int seed(int numEntries, String habitGroupPrefix, long habitGroupTimeStart, long habitGroupTimeIncrement) {
@@ -71,8 +83,16 @@ public class HabitProvider extends ContentProvider {
     @Override
     public Cursor query(Uri uri, String[] projection, String selection,
                         String[] selectionArgs, String sortOrder) {
-        // TODO: Implement this to handle query requests from clients.
-        throw new UnsupportedOperationException("Not yet implemented");
+        sdb = db.getReadableDatabase();
+        Cursor c;
+        switch (um.match(uri)) {
+            case KEY_GET_HABIT_GROUPS:
+                c = sdb.query(TABLE_HABIT_GROUPS, projection, selection, selectionArgs, null, null, sortOrder);
+                c.setNotificationUri(getContext().getContentResolver(), URI_GET_HABIT_GROUPS);
+                return c;
+            default:
+                throw new IllegalStateException("Unknown uri");
+        }
     }
 
     @Override
@@ -90,15 +110,15 @@ public class HabitProvider extends ContentProvider {
             super(context, DATABASE_NAME, null, DATABASE_VERSION);
         }
 
-        private static final String CREATE_HABIT_GROUPS = "CREATE TABLE IF NOT EXISTS " + TABLE_HABIT_GROUPS + "(" +
-                HABIT_GROUP_ID + " INTEGER PRIMARY KEY, " +
-                HABIT_GROUP_TITLE + " TEXT NOT NULL UNIQUE ON CONFLICT REPLACE, " +
-                HABIT_GROUP_TIME + " INTEGER NOT NULL DEFAULT 0);";
-
         @Override
         public void onCreate(SQLiteDatabase db) {
             db.execSQL(CREATE_HABIT_GROUPS);
         }
+
+        private static final String CREATE_HABIT_GROUPS = "CREATE TABLE IF NOT EXISTS " + TABLE_HABIT_GROUPS + "(" +
+                HABIT_GROUP_ID + " INTEGER PRIMARY KEY, " +
+                HABIT_GROUP_TITLE + " TEXT NOT NULL UNIQUE ON CONFLICT REPLACE, " +
+                HABIT_GROUP_TIME + " INTEGER NOT NULL DEFAULT 0);";
 
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
@@ -111,6 +131,8 @@ public class HabitProvider extends ContentProvider {
                 }
             }
         }
+
+
 
 
     }
