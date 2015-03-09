@@ -30,6 +30,7 @@ public class HabitProvider extends ContentProvider {
     public int seed(int numEntries, String habitGroupPrefix, long habitGroupTimeStart, long habitGroupTimeIncrement) {
         sdb = db.getWritableDatabase();
         sdb.beginTransaction();
+        sdb.delete(TABLE_HABIT_GROUPS, null, null);
         int inserted = 0;
         while (numEntries-- > 0) {
             ContentValues cv = new ContentValues();
@@ -89,14 +90,28 @@ public class HabitProvider extends ContentProvider {
             super(context, DATABASE_NAME, null, DATABASE_VERSION);
         }
 
+        private static final String CREATE_HABIT_GROUPS = "CREATE TABLE IF NOT EXISTS " + TABLE_HABIT_GROUPS + "(" +
+                HABIT_GROUP_ID + " INTEGER PRIMARY KEY, " +
+                HABIT_GROUP_TITLE + " TEXT NOT NULL UNIQUE ON CONFLICT REPLACE, " +
+                HABIT_GROUP_TIME + " INTEGER NOT NULL DEFAULT 0);";
+
         @Override
         public void onCreate(SQLiteDatabase db) {
-
+            db.execSQL(CREATE_HABIT_GROUPS);
         }
 
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 
+            for (int version = oldVersion; version <= newVersion; version++) {
+                switch (version) {
+
+                    default:
+                        break;
+                }
+            }
         }
+
+
     }
 }
