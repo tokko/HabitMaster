@@ -8,6 +8,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+import android.os.Bundle;
+import android.util.Log;
 
 public class HabitProvider extends ContentProvider {
     public static final String AUTHORITY = "com.tokko.provider.HabitProvider";
@@ -21,13 +23,13 @@ public class HabitProvider extends ContentProvider {
     public static final String HABIT_GROUP_TIME = "time";
 
     private static final int KEY_INVALID = 0;
-    private static final int KEY_GET_HABIT_GROUPS = 1;
+    private static final int KEY_HABIT_GROUPS = 1;
 
     private static final String ACTION_HABIT_GROUPS = "HABIT_GROUPS";
 
     public static final Uri URI_GET_HABIT_INVALID = makeUri(KEY_INVALID, "SLASK");
 
-    public static final Uri URI_HABIT_GROUPS = makeUri(KEY_GET_HABIT_GROUPS, ACTION_HABIT_GROUPS);
+    public static final Uri URI_HABIT_GROUPS = makeUri(KEY_HABIT_GROUPS, ACTION_HABIT_GROUPS);
 
     private static UriMatcher um;
     DatabaseOpenHelper db;
@@ -43,6 +45,14 @@ public class HabitProvider extends ContentProvider {
         return Uri.parse(String.format("content://%s/%s", AUTHORITY, action));
     }
 
+    @Override
+    public Bundle call(String method, String arg, Bundle extras) {
+        if(method.equals("seed")){
+            seed(20, "HABITGROUP", 0, 1);
+        }
+        return super.call(method, arg, extras);
+    }
+
     public int seed(int numEntries, String habitGroupPrefix, long habitGroupTimeStart, long habitGroupTimeIncrement) {
         sdb = db.getWritableDatabase();
         sdb.beginTransaction();
@@ -54,6 +64,7 @@ public class HabitProvider extends ContentProvider {
             cv.put(HABIT_GROUP_TIME, habitGroupTimeStart + habitGroupTimeIncrement * numEntries);
             inserted += sdb.insertOrThrow(TABLE_HABIT_GROUPS, null, cv);
         }
+        Log.d("HabitProvider", "Seeded with " + inserted + " records");
         sdb.setTransactionSuccessful();
         sdb.endTransaction();
         return inserted;
@@ -69,7 +80,7 @@ public class HabitProvider extends ContentProvider {
     public String getType(Uri uri) {
         // TODO: Implement this to handle requests for the MIME type of the data
         // at the given URI.
-        throw new UnsupportedOperationException("Not yet implemented");
+        return "";
     }
 
     @Override
@@ -90,7 +101,7 @@ public class HabitProvider extends ContentProvider {
         sdb = db.getReadableDatabase();
         Cursor c;
         switch (um.match(uri)) {
-            case KEY_GET_HABIT_GROUPS:
+            case KEY_HABIT_GROUPS:
                 c = sdb.query(TABLE_HABIT_GROUPS, projection, selection, selectionArgs, null, null, sortOrder);
                 c.setNotificationUri(getContext().getContentResolver(), URI_HABIT_GROUPS);
                 return c;

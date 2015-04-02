@@ -2,17 +2,21 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.tokko">
 
-    <application android:allowBackup="true">
+    <application android:allowBackup="true"
+        android:name=".HabitMasterApplication">
         <activity
             android:name=".MainActivity"
             android:screenOrientation="portrait">
+
+        </activity>
+
+        <activity android:name=".habitgroups.HabitgroupActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <provider
             android:name=".provider.HabitProvider"
             android:authorities="com.tokko.provider.HabitProvider"
