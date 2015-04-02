@@ -40,8 +40,10 @@ public class HabitgroupActivity extends Activity implements HabitgroupListFragme
 
     @Override
     public void onBackPressed() {
-        if(getFragmentManager().getBackStackEntryCount() > 0)
+        if(getFragmentManager().getBackStackEntryCount() > 0) {
             getFragmentManager().popBackStack();
+            editorFragment = null;
+        }
         else
             finish();
     }
