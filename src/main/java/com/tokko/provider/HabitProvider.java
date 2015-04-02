@@ -9,7 +9,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 
 public class HabitProvider extends ContentProvider {
     public static final String AUTHORITY = "com.tokko.provider.HabitProvider";
@@ -18,9 +17,9 @@ public class HabitProvider extends ContentProvider {
 
     public static final String TABLE_HABIT_GROUPS = "habitgroups";
 
-    public static final String HABIT_GROUP_ID = "_ID";
-    public static final String HABIT_GROUP_TITLE = "title";
-    public static final String HABIT_GROUP_TIME = "time";
+    public static final String ID = "_id";
+    public static final String TITLE = "title";
+    public static final String TIME = "time";
 
     private static final int KEY_INVALID = 0;
     private static final int KEY_HABIT_GROUPS = 1;
@@ -53,21 +52,19 @@ public class HabitProvider extends ContentProvider {
         return super.call(method, arg, extras);
     }
 
-    public int seed(int numEntries, String habitGroupPrefix, long habitGroupTimeStart, long habitGroupTimeIncrement) {
+    public void seed(int numEntries, String habitGroupPrefix, long habitGroupTimeStart, long habitGroupTimeIncrement) {
         sdb = db.getWritableDatabase();
         sdb.beginTransaction();
         sdb.delete(TABLE_HABIT_GROUPS, null, null);
-        int inserted = 0;
         while (numEntries-- > 0) {
             ContentValues cv = new ContentValues();
-            cv.put(HABIT_GROUP_TITLE, habitGroupPrefix + numEntries);
-            cv.put(HABIT_GROUP_TIME, habitGroupTimeStart + habitGroupTimeIncrement * numEntries);
-            inserted += sdb.insertOrThrow(TABLE_HABIT_GROUPS, null, cv);
+            cv.put(TITLE, habitGroupPrefix + numEntries);
+            cv.put(TIME, habitGroupTimeStart + habitGroupTimeIncrement * numEntries);
+            sdb.insertOrThrow(TABLE_HABIT_GROUPS, null, cv);
         }
-        Log.d("HabitProvider", "Seeded with " + inserted + " records");
         sdb.setTransactionSuccessful();
         sdb.endTransaction();
-        return inserted;
+        getContext().getContentResolver().notifyChange(URI_HABIT_GROUPS, null);
     }
 
     @Override
@@ -119,7 +116,7 @@ public class HabitProvider extends ContentProvider {
 
     private class DatabaseOpenHelper extends SQLiteOpenHelper {
 
-        private static final int DATABASE_VERSION = 1;
+        private static final int DATABASE_VERSION = 3;
 
         public DatabaseOpenHelper(Context context) {
             super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -131,13 +128,15 @@ public class HabitProvider extends ContentProvider {
         }
 
         private static final String CREATE_HABIT_GROUPS = "CREATE TABLE IF NOT EXISTS " + TABLE_HABIT_GROUPS + "(" +
-                HABIT_GROUP_ID + " INTEGER PRIMARY KEY, " +
-                HABIT_GROUP_TITLE + " TEXT NOT NULL UNIQUE ON CONFLICT REPLACE, " +
-                HABIT_GROUP_TIME + " INTEGER NOT NULL DEFAULT 0);";
+                ID + " INTEGER PRIMARY KEY, " +
+                TITLE + " TEXT NOT NULL UNIQUE ON CONFLICT REPLACE, " +
+                TIME + " INTEGER NOT NULL DEFAULT 0);";
 
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_HABIT_GROUPS);
+            onCreate(db);
+            newVersion = oldVersion-1;
             for (int version = oldVersion; version <= newVersion; version++) {
                 switch (version) {
 

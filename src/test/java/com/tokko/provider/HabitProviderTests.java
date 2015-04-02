@@ -42,18 +42,18 @@ public class HabitProviderTests extends TestCase {
 
     @Test
     public void getHabitGroups() {
-        Cursor c = mContentResolver.query(HabitProvider.URI_HABIT_GROUPS, null, null, null, HabitProvider.HABIT_GROUP_ID + " DESC");
+        Cursor c = mContentResolver.query(HabitProvider.URI_HABIT_GROUPS, null, null, null, HabitProvider.ID + " DESC");
         assertNotNull(c);
         assertEquals(NUM_HABIT_GROUPS, c.getCount());
         assertEquals(3, c.getColumnNames().length);
-        assertTrue(c.getColumnIndex(HabitProvider.HABIT_GROUP_ID) >= 0);
-        assertTrue(c.getColumnIndex(HabitProvider.HABIT_GROUP_TIME) >= 0);
-        assertTrue(c.getColumnIndex(HabitProvider.HABIT_GROUP_TITLE) >= 0);
+        assertTrue(c.getColumnIndex(HabitProvider.ID) >= 0);
+        assertTrue(c.getColumnIndex(HabitProvider.TIME) >= 0);
+        assertTrue(c.getColumnIndex(HabitProvider.TITLE) >= 0);
         int postfix = 0;
         long time = HABIT_GROUP_START_TIME;
         for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
-            assertEquals(HABIT_GROUP_PREFIX + postfix++, c.getString(c.getColumnIndex(HabitProvider.HABIT_GROUP_TITLE)));
-            assertEquals(time, c.getLong(c.getColumnIndex(HabitProvider.HABIT_GROUP_TIME)));
+            assertEquals(HABIT_GROUP_PREFIX + postfix++, c.getString(c.getColumnIndex(HabitProvider.TITLE)));
+            assertEquals(time, c.getLong(c.getColumnIndex(HabitProvider.TIME)));
             time += HABIT_GROUP_TIME_INCREMENT;
         }
     }
@@ -61,29 +61,29 @@ public class HabitProviderTests extends TestCase {
     @Test
     public void getSingleHabitGroup() {
         String title = HABIT_GROUP_PREFIX + "3";
-        Cursor c = mContentResolver.query(HabitProvider.URI_HABIT_GROUPS, null, String.format("%s=?", HabitProvider.HABIT_GROUP_TITLE), new String[]{title}, null);
+        Cursor c = mContentResolver.query(HabitProvider.URI_HABIT_GROUPS, null, String.format("%s=?", HabitProvider.TITLE), new String[]{title}, null);
         assertNotNull(c);
         assertEquals(1, c.getCount());
         assertEquals(3, c.getColumnNames().length);
-        assertTrue(c.getColumnIndex(HabitProvider.HABIT_GROUP_ID) >= 0);
-        assertTrue(c.getColumnIndex(HabitProvider.HABIT_GROUP_TIME) >= 0);
-        assertTrue(c.getColumnIndex(HabitProvider.HABIT_GROUP_TITLE) >= 0);
+        assertTrue(c.getColumnIndex(HabitProvider.ID) >= 0);
+        assertTrue(c.getColumnIndex(HabitProvider.TIME) >= 0);
+        assertTrue(c.getColumnIndex(HabitProvider.TITLE) >= 0);
         assertTrue(c.moveToFirst());
-        assertEquals(title, c.getString(c.getColumnIndex(HabitProvider.HABIT_GROUP_TITLE)));
+        assertEquals(title, c.getString(c.getColumnIndex(HabitProvider.TITLE)));
     }
 
     @Test
     public void getHabitGroupTitles() {
-        Cursor c = mContentResolver.query(HabitProvider.URI_HABIT_GROUPS, new String[]{HabitProvider.HABIT_GROUP_TITLE}, null, null, HabitProvider.HABIT_GROUP_ID + " DESC");
+        Cursor c = mContentResolver.query(HabitProvider.URI_HABIT_GROUPS, new String[]{HabitProvider.TITLE}, null, null, HabitProvider.ID + " DESC");
         assertNotNull(c);
         assertEquals(NUM_HABIT_GROUPS, c.getCount());
         assertEquals(1, c.getColumnNames().length);
-        assertTrue(c.getColumnIndex(HabitProvider.HABIT_GROUP_ID) == -1);
-        assertTrue(c.getColumnIndex(HabitProvider.HABIT_GROUP_TIME) == -1);
-        assertTrue(c.getColumnIndex(HabitProvider.HABIT_GROUP_TITLE) >= 0);
+        assertTrue(c.getColumnIndex(HabitProvider.ID) == -1);
+        assertTrue(c.getColumnIndex(HabitProvider.TIME) == -1);
+        assertTrue(c.getColumnIndex(HabitProvider.TITLE) >= 0);
         int postfix = 0;
         for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
-            assertEquals(HABIT_GROUP_PREFIX + postfix++, c.getString(c.getColumnIndex(HabitProvider.HABIT_GROUP_TITLE)));
+            assertEquals(HABIT_GROUP_PREFIX + postfix++, c.getString(c.getColumnIndex(HabitProvider.TITLE)));
         }
     }
 
