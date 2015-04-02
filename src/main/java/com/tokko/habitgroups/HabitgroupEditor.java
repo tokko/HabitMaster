@@ -79,6 +79,15 @@ public class HabitgroupEditor extends Fragment implements View.OnClickListener {
     }
 
     @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(EXTRA_TITLE, titleEditText.getText().toString());
+        outState.putLong(EXTRA_ID, id);
+        outState.putInt(EXTRA_HOUR, startTimeTimePicker.getCurrentHour());
+        outState.putInt(EXTRA_MINUTE, startTimeTimePicker.getCurrentMinute());
+    }
+
+    @Override
     public void onClick(View view) {
         //TODO: implement this shizznik
     }
