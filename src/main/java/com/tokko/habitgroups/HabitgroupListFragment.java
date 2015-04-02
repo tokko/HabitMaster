@@ -1,5 +1,6 @@
 package com.tokko.habitgroups;
 
+import android.app.Activity;
 import android.app.ListFragment;
 import android.app.LoaderManager;
 import android.content.CursorLoader;
@@ -8,7 +9,6 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.CursorAdapter;
-import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 
 import com.tokko.provider.HabitProvider;
@@ -16,6 +16,7 @@ import com.tokko.provider.HabitProvider;
 public class HabitgroupListFragment extends ListFragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
     private CursorAdapter adapter;
+    private HabitGroupListFragmentHost host;
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
@@ -28,6 +29,17 @@ public class HabitgroupListFragment extends ListFragment implements LoaderManage
         CursorLoader cl = new CursorLoader(getActivity());
         cl.setUri(HabitProvider.URI_HABIT_GROUPS);
         return cl;
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        try {
+            host  = (HabitGroupListFragmentHost) activity;
+        }
+        catch (ClassCastException ignored){
+            throw new IllegalStateException("Parent activity must inherit proper interface");
+        }
     }
 
     @Override
@@ -52,4 +64,12 @@ public class HabitgroupListFragment extends ListFragment implements LoaderManage
     public void onLoaderReset(Loader<Cursor> loader) {
         adapter.swapCursor(null);
     }
+
+    public interface HabitGroupListFragmentHost{
+
+        public void editHabitGroup(long id);
+
+        public void addHabitGroup();
+    }
+
 }
