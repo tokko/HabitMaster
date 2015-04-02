@@ -42,7 +42,7 @@ public class HabitProviderTests extends TestCase {
 
     @Test
     public void getHabitGroups() {
-        Cursor c = mContentResolver.query(HabitProvider.URI_GET_HABIT_GROUPS, null, null, null, HabitProvider.HABIT_GROUP_ID + " DESC");
+        Cursor c = mContentResolver.query(HabitProvider.URI_HABIT_GROUPS, null, null, null, HabitProvider.HABIT_GROUP_ID + " DESC");
         assertNotNull(c);
         assertEquals(NUM_HABIT_GROUPS, c.getCount());
         assertEquals(3, c.getColumnNames().length);
@@ -61,7 +61,7 @@ public class HabitProviderTests extends TestCase {
     @Test
     public void getSingleHabitGroup() {
         String title = HABIT_GROUP_PREFIX + "3";
-        Cursor c = mContentResolver.query(HabitProvider.URI_GET_HABIT_GROUPS, null, String.format("%s=?", HabitProvider.HABIT_GROUP_TITLE), new String[]{title}, null);
+        Cursor c = mContentResolver.query(HabitProvider.URI_HABIT_GROUPS, null, String.format("%s=?", HabitProvider.HABIT_GROUP_TITLE), new String[]{title}, null);
         assertNotNull(c);
         assertEquals(1, c.getCount());
         assertEquals(3, c.getColumnNames().length);
@@ -74,7 +74,7 @@ public class HabitProviderTests extends TestCase {
 
     @Test
     public void getHabitGroupTitles() {
-        Cursor c = mContentResolver.query(HabitProvider.URI_GET_HABIT_GROUPS, new String[]{HabitProvider.HABIT_GROUP_TITLE}, null, null, HabitProvider.HABIT_GROUP_ID + " DESC");
+        Cursor c = mContentResolver.query(HabitProvider.URI_HABIT_GROUPS, new String[]{HabitProvider.HABIT_GROUP_TITLE}, null, null, HabitProvider.HABIT_GROUP_ID + " DESC");
         assertNotNull(c);
         assertEquals(NUM_HABIT_GROUPS, c.getCount());
         assertEquals(1, c.getColumnNames().length);

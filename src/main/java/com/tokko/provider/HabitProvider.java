@@ -21,10 +21,14 @@ public class HabitProvider extends ContentProvider {
     public static final String HABIT_GROUP_TIME = "time";
 
     private static final int KEY_INVALID = 0;
-    public static final Uri URI_GET_HABIT_INVALID = makeUri(KEY_INVALID, "SLASK");
     private static final int KEY_GET_HABIT_GROUPS = 1;
-    private static final String ACTION_GET_HABIT_GROUPS = "GET_HABIT_GROUPS";
-    public static final Uri URI_GET_HABIT_GROUPS = makeUri(KEY_GET_HABIT_GROUPS, ACTION_GET_HABIT_GROUPS);
+
+    private static final String ACTION_HABIT_GROUPS = "HABIT_GROUPS";
+
+    public static final Uri URI_GET_HABIT_INVALID = makeUri(KEY_INVALID, "SLASK");
+
+    public static final Uri URI_HABIT_GROUPS = makeUri(KEY_GET_HABIT_GROUPS, ACTION_HABIT_GROUPS);
+
     private static UriMatcher um;
     DatabaseOpenHelper db;
     SQLiteDatabase sdb;
@@ -88,7 +92,7 @@ public class HabitProvider extends ContentProvider {
         switch (um.match(uri)) {
             case KEY_GET_HABIT_GROUPS:
                 c = sdb.query(TABLE_HABIT_GROUPS, projection, selection, selectionArgs, null, null, sortOrder);
-                c.setNotificationUri(getContext().getContentResolver(), URI_GET_HABIT_GROUPS);
+                c.setNotificationUri(getContext().getContentResolver(), URI_HABIT_GROUPS);
                 return c;
             default:
                 throw new IllegalStateException("Unknown uri");
