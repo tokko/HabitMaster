@@ -98,6 +98,11 @@ public class HabitProviderTests extends TestCase {
         mContentResolver.update(HabitProvider.URI_GET_HABIT_INVALID, new ContentValues(), null, null);
     }
 
+    @Test(expected = IllegalStateException.class)
+    public void deleteInvalidUri_ThrowsIllegalStateException() {
+        mContentResolver.delete(HabitProvider.URI_GET_HABIT_INVALID, null, null);
+    }
+
     @Test
     public void testUpdateHabitGroup(){
         Cursor toUpdate = mContentResolver.query(HabitProvider.URI_HABIT_GROUPS, null, null, null, null);

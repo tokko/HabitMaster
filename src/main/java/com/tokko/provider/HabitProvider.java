@@ -77,8 +77,13 @@ public class HabitProvider extends ContentProvider {
 
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
-        // Implement this to handle requests to delete one or more rows.
-        throw new UnsupportedOperationException("Not yet implemented");
+        int deleted;
+        sdb = db.getWritableDatabase();
+        switch (um.match(uri)){
+
+            default:
+                throw new IllegalStateException("Unknoen uri");
+        }
     }
 
     @Override
