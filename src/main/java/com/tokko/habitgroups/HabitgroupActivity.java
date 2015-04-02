@@ -17,7 +17,7 @@ public class HabitgroupActivity extends Activity implements HabitgroupListFragme
         if(savedInstanceState != null){
             editorFragment = getFragmentManager().getFragment(savedInstanceState, TAG_EDITOR_FRAGMENT);
             if(editorFragment != null)
-                getFragmentManager().beginTransaction().replace(android.R.id.content, editorFragment).addToBackStack(TAG_EDITOR_FRAGMENT).commit();
+                getFragmentManager().beginTransaction().replace(android.R.id.content, editorFragment).commit();
         }
     }
 
@@ -40,7 +40,7 @@ public class HabitgroupActivity extends Activity implements HabitgroupListFragme
 
     @Override
     public void onBackPressed() {
-        if(getFragmentManager().getBackStackEntryCount() > 1)
+        if(getFragmentManager().getBackStackEntryCount() > 0)
             getFragmentManager().popBackStack();
         else
             finish();
