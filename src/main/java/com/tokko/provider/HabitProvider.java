@@ -67,6 +67,14 @@ public class HabitProvider extends ContentProvider {
         getContext().getContentResolver().notifyChange(URI_HABIT_GROUPS, null);
     }
 
+    public static String whereID(){
+        return String.format("%s=?", ID);
+    }
+
+    public static String[] idArgs(Number id){
+        return new String[]{String.valueOf(id)};
+    }
+
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
         // Implement this to handle requests to delete one or more rows.
@@ -110,8 +118,17 @@ public class HabitProvider extends ContentProvider {
     @Override
     public int update(Uri uri, ContentValues values, String selection,
                       String[] selectionArgs) {
-        // TODO: Implement this to handle requests to update one or more rows.
-        throw new UnsupportedOperationException("Not yet implemented");
+        sdb = db.getWritableDatabase();
+        int updated;
+        switch (um.match(uri)){
+            case KEY_HABIT_GROUPS:
+                updated = sdb.update(TABLE_HABIT_GROUPS, values, selection, selectionArgs);
+                if(updated > 0)
+                    getContext().getContentResolver().notifyChange(URI_HABIT_GROUPS, null);
+                return updated;
+            default:
+                throw new IllegalStateException("Unknown uri");
+        }
     }
 
     private class DatabaseOpenHelper extends SQLiteOpenHelper {

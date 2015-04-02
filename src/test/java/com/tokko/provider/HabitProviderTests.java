@@ -1,6 +1,7 @@
 package com.tokko.provider;
 
 import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.database.Cursor;
 
 import junit.framework.Assert;
@@ -92,4 +93,23 @@ public class HabitProviderTests extends TestCase {
         mContentResolver.query(HabitProvider.URI_GET_HABIT_INVALID, null, null, null, null);
     }
 
+    @Test
+    public void testUpdateHabitGroup(){
+        Cursor toUpdate = mContentResolver.query(HabitProvider.URI_HABIT_GROUPS, null, null, null, null);
+        toUpdate.moveToLast();
+        long id = toUpdate.getLong(toUpdate.getColumnIndex(HabitProvider.ID));
+        long time  = toUpdate.getInt(toUpdate.getColumnIndex(HabitProvider.TIME));
+        toUpdate.close();
+        ContentValues cv = new ContentValues();
+        String newTitle = "bananfisk2000";
+        cv.put(HabitProvider.TITLE, newTitle);
+        int updated = mContentResolver.update(HabitProvider.URI_HABIT_GROUPS, cv, HabitProvider.whereID(), HabitProvider.idArgs(id));
+        assertEquals(1, updated);
+        Cursor afterUpdate = mContentResolver.query(HabitProvider.URI_HABIT_GROUPS, null, HabitProvider.whereID(), HabitProvider.idArgs(id), null);
+        assertEquals(1, afterUpdate.getCount());
+        assertTrue(afterUpdate.moveToFirst());
+        assertEquals(time, afterUpdate.getLong(afterUpdate.getColumnIndex(HabitProvider.TIME)));
+        assertEquals(newTitle, afterUpdate.getString(afterUpdate.getColumnIndex(HabitProvider.TITLE)));
+        afterUpdate.close();
+    }
 }
