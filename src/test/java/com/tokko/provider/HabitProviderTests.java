@@ -122,4 +122,23 @@ public class HabitProviderTests extends TestCase {
         assertEquals(newTitle, afterUpdate.getString(afterUpdate.getColumnIndex(HabitProvider.TITLE)));
         afterUpdate.close();
     }
+
+    @Test
+    public void testDeleteHabitgroup(){
+        Cursor before = mContentResolver.query(HabitProvider.URI_HABIT_GROUPS, null, null, null, null);
+        before.moveToPosition(before.getCount()/2);
+        long id = before.getLong(before.getColumnIndex(HabitProvider.ID));
+        int count = before.getCount();
+        before.close();
+        int deleted = mContentResolver.delete(HabitProvider.URI_HABIT_GROUPS, HabitProvider.whereID(), HabitProvider.idArgs(id));
+        assertEquals(1, deleted);
+        Cursor after = mContentResolver.query(HabitProvider.URI_HABIT_GROUPS, null, null, null, null);
+        assertEquals(count-1, after.getCount());
+        for(after.moveToFirst(); !after.isAfterLast(); after.moveToNext())
+            assertTrue(id != after.getLong(after.getColumnIndex(HabitProvider.ID)));
+        after.close();
+        after = mContentResolver.query(HabitProvider.URI_HABIT_GROUPS, null, HabitProvider.whereID(), HabitProvider.idArgs(id), null);
+        assertEquals(0, after.getCount());
+        after.close();
+    }
 }

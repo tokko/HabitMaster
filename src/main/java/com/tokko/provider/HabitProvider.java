@@ -80,7 +80,11 @@ public class HabitProvider extends ContentProvider {
         int deleted;
         sdb = db.getWritableDatabase();
         switch (um.match(uri)){
-
+            case KEY_HABIT_GROUPS:
+                deleted = sdb.delete(TABLE_HABIT_GROUPS, selection, selectionArgs);
+                if(deleted > 0)
+                    getContext().getContentResolver().notifyChange(URI_HABIT_GROUPS, null);
+                return deleted;
             default:
                 throw new IllegalStateException("Unknoen uri");
         }
