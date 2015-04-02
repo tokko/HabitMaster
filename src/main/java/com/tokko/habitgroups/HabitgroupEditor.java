@@ -1,6 +1,8 @@
 package com.tokko.habitgroups;
 
+import android.app.Activity;
 import android.app.Fragment;
+import android.content.ContentValues;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -14,6 +16,8 @@ import com.tokko.R;
 import com.tokko.Util.TimeUtils;
 import com.tokko.provider.HabitProvider;
 
+import org.joda.time.DateTimeConstants;
+
 public class HabitgroupEditor extends Fragment implements View.OnClickListener {
     private static final String EXTRA_ID = "extra_id";
     private static final String EXTRA_TITLE = "extra_title";
@@ -26,6 +30,7 @@ public class HabitgroupEditor extends Fragment implements View.OnClickListener {
     private TimePicker startTimeTimePicker;
     private EditText titleEditText;
     private long id = -1;
+    private HabitGroupEditorHost host;
 
     public static HabitgroupEditor newInstance(long id){
         Bundle b = new Bundle();
@@ -57,8 +62,8 @@ public class HabitgroupEditor extends Fragment implements View.OnClickListener {
         if(savedInstanceState != null){
             titleEditText.setText(savedInstanceState.getString(EXTRA_TITLE, ""));
             id = savedInstanceState.getLong(EXTRA_ID, -1);
-            startTimeTimePicker.setCurrentHour(savedInstanceState.getInt(EXTRA_HOUR, TimeUtils.getCurrentTime().getHourOfDay()));
-            startTimeTimePicker.setCurrentMinute(savedInstanceState.getInt(EXTRA_MINUTE, TimeUtils.getCurrentTime().getMinuteOfHour()));
+            startTimeTimePicker.setCurrentHour(savedInstanceState.getInt(EXTRA_HOUR));
+            startTimeTimePicker.setCurrentMinute(savedInstanceState.getInt(EXTRA_MINUTE));
         }
         else if(getArguments() != null){
             id = getArguments().getLong(EXTRA_ID, -1);
@@ -69,13 +74,25 @@ public class HabitgroupEditor extends Fragment implements View.OnClickListener {
                 long time = c.getLong(c.getColumnIndex(HabitProvider.TIME));
                 startTimeTimePicker.setCurrentHour(TimeUtils.extractHours(time));
                 startTimeTimePicker.setCurrentMinute(TimeUtils.extractMinutes(time));
+                titleEditText.setText(c.getString(c.getColumnIndex(HabitProvider.TITLE)));
                 c.close();
             }
         }
-
+        deleteButton.setEnabled(id > -1);
         okButton.setOnClickListener(this);
         deleteButton.setOnClickListener(this);
         cancelButton.setOnClickListener(this);
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        try {
+            host = (HabitGroupEditorHost) activity;
+        }
+        catch (ClassCastException ignored){
+            throw new IllegalStateException("Parent activity must implement proper interface");
+        }
     }
 
     @Override
@@ -89,6 +106,23 @@ public class HabitgroupEditor extends Fragment implements View.OnClickListener {
 
     @Override
     public void onClick(View view) {
-        //TODO: implement this shizznik
+        switch (view.getId()){
+            case R.id.habitgroupeditor_ok:
+                ContentValues cv = new ContentValues();
+                cv.put(HabitProvider.TITLE, titleEditText.getText().toString());
+                cv.put(HabitProvider.TIME, startTimeTimePicker.getCurrentHour()* DateTimeConstants.MILLIS_PER_HOUR + startTimeTimePicker.getCurrentMinute() * DateTimeConstants.MILLIS_PER_MINUTE);
+                if(id == -1)
+                    getActivity().getContentResolver().insert(HabitProvider.URI_HABIT_GROUPS, cv);
+                else
+                    getActivity().getContentResolver().update(HabitProvider.URI_HABIT_GROUPS, cv, String.format("%s=?", HabitProvider.ID), new String[]{String.valueOf(id)});
+                break;
+            case R.id.habitgroupeditor_delete:
+                getActivity().getContentResolver().delete(HabitProvider.URI_HABIT_GROUPS, String.format("%s=?", HabitProvider.ID), new String[]{String.valueOf(id)});
+        }
+        host.onEditFinished();
+    }
+
+    public interface HabitGroupEditorHost{
+        public void onEditFinished();
     }
 }
