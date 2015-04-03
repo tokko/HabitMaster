@@ -5,17 +5,19 @@ import android.app.Fragment;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 
+import com.tokko.dialogs.TimePickerDialogFragment;
 
-public class HabitgroupActivity extends Activity implements HabitgroupListFragment.HabitGroupListFragmentHost, HabitgroupEditor.HabitGroupEditorHost{
+
+public class HabitgroupActivity extends Activity implements HabitgroupListFragment.HabitGroupListFragmentHost, HabitgroupEditor.HabitGroupEditorHost, TimePickerDialogFragment.TimePickerDialogCallbacks{
     private static final String TAG_EDITOR_FRAGMENT = "editor_fragment";
-    private Fragment editorFragment;
+    private HabitgroupEditor editorFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getFragmentManager().beginTransaction().replace(android.R.id.content, new HabitgroupListFragment()).commit();
         if(savedInstanceState != null){
-            editorFragment = getFragmentManager().getFragment(savedInstanceState, TAG_EDITOR_FRAGMENT);
+            editorFragment = (HabitgroupEditor) getFragmentManager().getFragment(savedInstanceState, TAG_EDITOR_FRAGMENT);
             if(editorFragment != null)
                 getFragmentManager().beginTransaction().replace(android.R.id.content, editorFragment).commit();
         }
@@ -54,7 +56,18 @@ public class HabitgroupActivity extends Activity implements HabitgroupListFragme
     }
 
     @Override
+    public void editorPickTime(int currentHour, int currentMinute) {
+        TimePickerDialogFragment.newInstance(0, currentHour, currentMinute).show(getFragmentManager(), "tag");
+    }
+
+    @Override
     public void onEditFinished() {
         getFragmentManager().popBackStack();
+    }
+
+    @Override
+    public void onTimeSet(int id, int hour, int minute) {
+        if(editorFragment != null)
+            editorFragment.onTimePicked(hour, minute);
     }
 }

@@ -27,10 +27,12 @@ public class HabitgroupEditor extends ListFragment implements View.OnClickListen
     private Button okButton;
     private Button deleteButton;
     private Button cancelButton;
-    private TimePicker startTimeTimePicker;
     private EditText titleEditText;
     private long id = -1;
     private HabitGroupEditorHost host;
+    private Button setTimeButton;
+    private int hour;
+    private int minute;
 
     public static HabitgroupEditor newInstance(long id){
         Bundle b = new Bundle();
@@ -51,20 +53,18 @@ public class HabitgroupEditor extends ListFragment implements View.OnClickListen
         deleteButton = (Button) v.findViewById(R.id.habitgroupeditor_delete);
         cancelButton = (Button) v.findViewById(R.id.habitgroupeditor_cancel);
         titleEditText = (EditText) v.findViewById(R.id.habitgroupedit_title);
-        startTimeTimePicker = (TimePicker) v.findViewById(R.id.habitgroupedit_startTime);
-
+        setTimeButton = (Button) v.findViewById(R.id.habitgroupedit_pickTime);
         return v;
     }
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        startTimeTimePicker.setIs24HourView(true);
         if(savedInstanceState != null){
             titleEditText.setText(savedInstanceState.getString(EXTRA_TITLE, ""));
             id = savedInstanceState.getLong(EXTRA_ID, -1);
-            startTimeTimePicker.setCurrentHour(savedInstanceState.getInt(EXTRA_HOUR));
-            startTimeTimePicker.setCurrentMinute(savedInstanceState.getInt(EXTRA_MINUTE));
+            hour = savedInstanceState.getInt(EXTRA_HOUR);
+            minute = savedInstanceState.getInt(EXTRA_MINUTE);
         }
         else if(getArguments() != null){
             id = getArguments().getLong(EXTRA_ID, -1);
@@ -73,8 +73,8 @@ public class HabitgroupEditor extends ListFragment implements View.OnClickListen
                 if(!c.moveToFirst()) throw new IllegalStateException("No habit group found");
                 if(c.getCount() != 1) throw new IllegalStateException("Expected only one habit group");
                 long time = c.getLong(c.getColumnIndex(HabitProvider.TIME));
-                startTimeTimePicker.setCurrentHour(TimeUtils.extractHours(time));
-                startTimeTimePicker.setCurrentMinute(TimeUtils.extractMinutes(time));
+                hour = TimeUtils.extractHours(time);
+                minute = TimeUtils.extractMinutes(time);
                 titleEditText.setText(c.getString(c.getColumnIndex(HabitProvider.TITLE)));
                 c.close();
             }
@@ -83,6 +83,7 @@ public class HabitgroupEditor extends ListFragment implements View.OnClickListen
         okButton.setOnClickListener(this);
         deleteButton.setOnClickListener(this);
         cancelButton.setOnClickListener(this);
+        setTimeButton.setOnClickListener(this);
     }
 
     @Override
@@ -101,17 +102,20 @@ public class HabitgroupEditor extends ListFragment implements View.OnClickListen
         super.onSaveInstanceState(outState);
         outState.putString(EXTRA_TITLE, titleEditText.getText().toString());
         outState.putLong(EXTRA_ID, id);
-        outState.putInt(EXTRA_HOUR, startTimeTimePicker.getCurrentHour());
-        outState.putInt(EXTRA_MINUTE, startTimeTimePicker.getCurrentMinute());
+        outState.putInt(EXTRA_HOUR, hour);
+        outState.putInt(EXTRA_MINUTE, hour);
     }
 
     @Override
     public void onClick(View view) {
         switch (view.getId()){
+            case R.id.habitgroupedit_pickTime:
+                host.editorPickTime(hour, minute);
+                return;
             case R.id.habitgroupeditor_ok:
                 ContentValues cv = new ContentValues();
                 cv.put(HabitProvider.TITLE, titleEditText.getText().toString());
-                cv.put(HabitProvider.TIME, startTimeTimePicker.getCurrentHour()* DateTimeConstants.MILLIS_PER_HOUR + startTimeTimePicker.getCurrentMinute() * DateTimeConstants.MILLIS_PER_MINUTE);
+                cv.put(HabitProvider.TIME, hour * DateTimeConstants.MILLIS_PER_HOUR + minute * DateTimeConstants.MILLIS_PER_MINUTE);
                 if(id == -1)
                     getActivity().getContentResolver().insert(HabitProvider.URI_HABIT_GROUPS, cv);
                 else
@@ -123,7 +127,14 @@ public class HabitgroupEditor extends ListFragment implements View.OnClickListen
         host.onEditFinished();
     }
 
+    public void onTimePicked(int hour, int minute){
+        this.hour = hour;
+        this.minute = minute;
+    }
+
     public interface HabitGroupEditorHost{
+        public void editorPickTime(int currentHour, int currentMinute);
+
         public void onEditFinished();
     }
 }
