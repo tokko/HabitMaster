@@ -20,10 +20,10 @@ public class HabitProvider extends ContentProvider {
     public static final String ID = "_id";
     public static final String TITLE = "title";
     public static final String TIME = "time";
+    public static final String WEEKDAY = "weekday";
     public static final String HABIT_GROUP = "habitgroup";
 
     private static final String TABLE_REPEATING = "repeating";
-    private static final String WEEKDAY = "weekday";
 
     private static final int KEY_INVALID = 0;
     private static final int KEY_HABIT_GROUPS = 1;

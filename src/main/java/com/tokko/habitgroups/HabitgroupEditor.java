@@ -1,6 +1,7 @@
 package com.tokko.habitgroups;
 
 import android.app.Activity;
+import android.app.Fragment;
 import android.app.ListFragment;
 import android.content.ContentValues;
 import android.database.Cursor;
@@ -10,7 +11,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TimePicker;
 
 import com.tokko.R;
 import com.tokko.Util.TimeUtils;
@@ -18,11 +18,15 @@ import com.tokko.provider.HabitProvider;
 
 import org.joda.time.DateTimeConstants;
 
-public class HabitgroupEditor extends ListFragment implements View.OnClickListener {
+import java.util.ArrayList;
+import java.util.List;
+
+public class HabitgroupEditor extends Fragment implements View.OnClickListener {
     private static final String EXTRA_ID = "extra_id";
     private static final String EXTRA_TITLE = "extra_title";
     private static final String EXTRA_HOUR = "extra_hour";
     private static final String EXTRA_MINUTE = "extra_minute";
+    private static final String EXTRA_WEEKDAYS = "extra_weekdays";
 
     private Button okButton;
     private Button deleteButton;
@@ -33,6 +37,8 @@ public class HabitgroupEditor extends ListFragment implements View.OnClickListen
     private Button setTimeButton;
     private int hour;
     private int minute;
+    private Button pickWeekdaysButton;
+    private ArrayList<Integer> weekdays;
 
     public static HabitgroupEditor newInstance(long id){
         Bundle b = new Bundle();
@@ -54,6 +60,7 @@ public class HabitgroupEditor extends ListFragment implements View.OnClickListen
         cancelButton = (Button) v.findViewById(R.id.habitgroupeditor_cancel);
         titleEditText = (EditText) v.findViewById(R.id.habitgroupedit_title);
         setTimeButton = (Button) v.findViewById(R.id.habitgroupedit_pickTime);
+        pickWeekdaysButton = (Button) v.findViewById(R.id.habitgroupedit_pickWeekday);
         return v;
     }
 
@@ -65,6 +72,7 @@ public class HabitgroupEditor extends ListFragment implements View.OnClickListen
             id = savedInstanceState.getLong(EXTRA_ID, -1);
             hour = savedInstanceState.getInt(EXTRA_HOUR);
             minute = savedInstanceState.getInt(EXTRA_MINUTE);
+            weekdays = savedInstanceState.getIntegerArrayList(EXTRA_WEEKDAYS);
         }
         else if(getArguments() != null){
             id = getArguments().getLong(EXTRA_ID, -1);
@@ -77,6 +85,12 @@ public class HabitgroupEditor extends ListFragment implements View.OnClickListen
                 minute = TimeUtils.extractMinutes(time);
                 titleEditText.setText(c.getString(c.getColumnIndex(HabitProvider.TITLE)));
                 c.close();
+
+                weekdays = new ArrayList<>();
+                c = getActivity().getContentResolver().query(HabitProvider.URI_REPEATING, null, HabitProvider.whereEquals(HabitProvider.HABIT_GROUP), HabitProvider.idArgs(id), null);
+                for(c.moveToFirst(); !c.isAfterLast(); c.moveToNext())
+                    weekdays.add(c.getInt(c.getColumnIndex(HabitProvider.WEEKDAY)));
+                c.close();
             }
         }
         deleteButton.setEnabled(id > -1);
@@ -84,6 +98,7 @@ public class HabitgroupEditor extends ListFragment implements View.OnClickListen
         deleteButton.setOnClickListener(this);
         cancelButton.setOnClickListener(this);
         setTimeButton.setOnClickListener(this);
+        pickWeekdaysButton.setOnClickListener(this);
     }
 
     @Override
@@ -109,6 +124,9 @@ public class HabitgroupEditor extends ListFragment implements View.OnClickListen
     @Override
     public void onClick(View view) {
         switch (view.getId()){
+            case R.id.habitgroupedit_pickWeekday:
+                host.editorPickWeekdays(weekdays);
+                return;
             case R.id.habitgroupedit_pickTime:
                 host.editorPickTime(hour, minute);
                 return;
@@ -132,7 +150,13 @@ public class HabitgroupEditor extends ListFragment implements View.OnClickListen
         this.minute = minute;
     }
 
+    public void onWeekdaysPicked(ArrayList<Integer> weekdays) {
+        this.weekdays = weekdays;
+    }
+
     public interface HabitGroupEditorHost{
+        public void editorPickWeekdays(ArrayList<Integer> currentWeekdays);
+
         public void editorPickTime(int currentHour, int currentMinute);
 
         public void onEditFinished();

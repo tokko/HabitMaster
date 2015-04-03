@@ -4,9 +4,13 @@ import android.app.Activity;
 import android.os.Bundle;
 
 import com.tokko.dialogs.TimePickerDialogFragment;
+import com.tokko.dialogs.WeekdayPickerDialogFragment;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
-public class HabitgroupActivity extends Activity implements HabitgroupListFragment.HabitGroupListFragmentHost, HabitgroupEditor.HabitGroupEditorHost, TimePickerDialogFragment.TimePickerDialogCallbacks{
+public class HabitgroupActivity extends Activity implements HabitgroupListFragment.HabitGroupListFragmentHost, HabitgroupEditor.HabitGroupEditorHost, TimePickerDialogFragment.TimePickerDialogCallbacks, WeekdayPickerDialogFragment.WeekdayPickerCallbacks{
     private static final String TAG_EDITOR_FRAGMENT = "editor_fragment";
     private HabitgroupEditor editorFragment;
 
@@ -54,6 +58,11 @@ public class HabitgroupActivity extends Activity implements HabitgroupListFragme
     }
 
     @Override
+    public void editorPickWeekdays(ArrayList<Integer> currentWeekdays) {
+        WeekdayPickerDialogFragment.newInstance(currentWeekdays).show(getFragmentManager(), "t");
+    }
+
+    @Override
     public void editorPickTime(int currentHour, int currentMinute) {
         TimePickerDialogFragment.newInstance(0, currentHour, currentMinute).show(getFragmentManager(), "tag");
     }
@@ -67,5 +76,11 @@ public class HabitgroupActivity extends Activity implements HabitgroupListFragme
     public void onTimeSet(int id, int hour, int minute) {
         if(editorFragment != null)
             editorFragment.onTimePicked(hour, minute);
+    }
+
+    @Override
+    public void onWeekdayPicked(ArrayList<Integer> weekdays) {
+        if(editorFragment != null)
+            editorFragment.onWeekdaysPicked(weekdays);
     }
 }

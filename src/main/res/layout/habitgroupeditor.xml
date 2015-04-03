@@ -19,17 +19,11 @@
             android:id="@+id/habitgroupedit_pickTime"
             android:text="Set start time"
             android:layout_height="wrap_content" />
-        <TimePicker
-            android:id="@+id/habitgroupedit_startTime"
-            android:layout_width="match_parent"
-            android:visibility="gone"
-            android:layout_height="wrap_content" />
 
-        <ListView
-            android:id="@android:id/list"
-            android:choiceMode="multipleChoice"
-            android:entries="@array/weekdays"
+        <Button
             android:layout_width="match_parent"
+            android:id="@+id/habitgroupedit_pickWeekday"
+            android:text="Pick weekdays"
             android:layout_height="wrap_content" />
     </LinearLayout>
 
