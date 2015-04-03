@@ -1,9 +1,7 @@
 package com.tokko.habitgroups;
 
 import android.app.Activity;
-import android.app.Fragment;
 import android.os.Bundle;
-import android.os.PersistableBundle;
 
 import com.tokko.dialogs.TimePickerDialogFragment;
 
