@@ -141,4 +141,16 @@ public class HabitProviderTests extends TestCase {
         assertEquals(0, after.getCount());
         after.close();
     }
+
+    @Test
+    public void testGetRepeatings(){
+        Cursor c = mContentResolver.query(HabitProvider.URI_HABIT_GROUPS, null, null, null, null);
+        for(c.moveToFirst(); !c.isAfterLast(); c.moveToNext()){
+            long id = c.getLong(c.getColumnIndex(HabitProvider.ID));
+            Cursor c2 = mContentResolver.query(HabitProvider.URI_REPEATING, null, HabitProvider.whereEquals(HabitProvider.HABIT_GROUP), HabitProvider.idArgs(id), null);
+            assertEquals(4, c2.getCount());
+            c2.close();
+        }
+        c.close();
+    }
 }

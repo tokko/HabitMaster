@@ -20,15 +20,22 @@ public class HabitProvider extends ContentProvider {
     public static final String ID = "_id";
     public static final String TITLE = "title";
     public static final String TIME = "time";
+    public static final String HABIT_GROUP = "habitgroup";
+
+    private static final String TABLE_REPEATING = "repeating";
+    private static final String WEEKDAY = "weekday";
 
     private static final int KEY_INVALID = 0;
     private static final int KEY_HABIT_GROUPS = 1;
+    private static final int KEY_REPEATING = 2;
 
     private static final String ACTION_HABIT_GROUPS = "HABIT_GROUPS";
+    private static final String ACTION_REPEATING = "REPEATING";
 
     public static final Uri URI_GET_HABIT_INVALID = makeUri(KEY_INVALID, "SLASK");
 
     public static final Uri URI_HABIT_GROUPS = makeUri(KEY_HABIT_GROUPS, ACTION_HABIT_GROUPS);
+    public static final Uri URI_REPEATING = makeUri(KEY_REPEATING, ACTION_REPEATING);
 
     private static UriMatcher um;
     DatabaseOpenHelper db;
@@ -60,13 +67,22 @@ public class HabitProvider extends ContentProvider {
             ContentValues cv = new ContentValues();
             cv.put(TITLE, habitGroupPrefix + numEntries);
             cv.put(TIME, habitGroupTimeStart + habitGroupTimeIncrement * numEntries);
-            sdb.insertOrThrow(TABLE_HABIT_GROUPS, null, cv);
+            long id = sdb.insertOrThrow(TABLE_HABIT_GROUPS, null, cv);
+            for(int i = 1; i < 5; i++){
+                cv.clear();
+                cv.put(HABIT_GROUP, id);
+                cv.put(WEEKDAY, i);
+                sdb.insertOrThrow(TABLE_REPEATING, null, cv);
+            }
         }
         sdb.setTransactionSuccessful();
         sdb.endTransaction();
         getContext().getContentResolver().notifyChange(URI_HABIT_GROUPS, null);
     }
 
+    public static String whereEquals(String field){
+        return String.format("%s=?", field);
+    }
     public static String whereID(){
         return String.format("%s=?", ID);
     }
@@ -119,6 +135,10 @@ public class HabitProvider extends ContentProvider {
                 c = sdb.query(TABLE_HABIT_GROUPS, projection, selection, selectionArgs, null, null, sortOrder);
                 c.setNotificationUri(getContext().getContentResolver(), URI_HABIT_GROUPS);
                 return c;
+            case KEY_REPEATING:
+                c = sdb.query(TABLE_REPEATING, projection, selection, selectionArgs, null, null, sortOrder);
+                c.setNotificationUri(getContext().getContentResolver(), URI_REPEATING);
+                return c;
             default:
                 throw new IllegalStateException("Unknown uri");
         }
@@ -151,6 +171,7 @@ public class HabitProvider extends ContentProvider {
         @Override
         public void onCreate(SQLiteDatabase db) {
             db.execSQL(CREATE_HABIT_GROUPS);
+            db.execSQL(CREATE_HABIT_GROUPS_REPEAT);
         }
 
         private static final String CREATE_HABIT_GROUPS = "CREATE TABLE IF NOT EXISTS " + TABLE_HABIT_GROUPS + "(" +
@@ -158,9 +179,15 @@ public class HabitProvider extends ContentProvider {
                 TITLE + " TEXT NOT NULL UNIQUE ON CONFLICT REPLACE, " +
                 TIME + " INTEGER NOT NULL DEFAULT 0);";
 
+        private static final String CREATE_HABIT_GROUPS_REPEAT = "CREATE TABLE IF NOT EXISTS " + TABLE_REPEATING + "(" +
+                ID + " INTEGER PRIMARY KEY, " +
+                HABIT_GROUP + " INTEGER NOT NULL, " +
+                WEEKDAY + " INTEGER NOT NULL);";
+
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
             db.execSQL("DROP TABLE IF EXISTS " + TABLE_HABIT_GROUPS);
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_REPEATING);
             onCreate(db);
             newVersion = oldVersion-1;
             for (int version = oldVersion; version <= newVersion; version++) {
