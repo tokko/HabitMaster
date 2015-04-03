@@ -11,6 +11,7 @@ import org.joda.time.DateTimeConstants;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
@@ -143,6 +144,18 @@ public class HabitProviderTests extends TestCase {
     }
 
     @Test
+    public void testDeleteRepeating(){
+        Cursor before = mContentResolver.query(HabitProvider.URI_HABIT_GROUPS, null, null, null, null);
+        before.moveToPosition(before.getCount()/2);
+        long id = before.getLong(before.getColumnIndex(HabitProvider.ID));
+        before.close();
+        int deleted = mContentResolver.delete(HabitProvider.URI_REPEATING, HabitProvider.whereEquals(HabitProvider.HABIT_GROUP), HabitProvider.idArgs(id));
+        assertEquals(4, deleted);
+        Cursor after = mContentResolver.query(HabitProvider.URI_REPEATING, null, HabitProvider.whereEquals(HabitProvider.HABIT_GROUP), HabitProvider.idArgs(id), null);
+        assertEquals(0, after.getCount());
+        after.close();
+    }
+    @Test
     public void testGetRepeatings(){
         Cursor c = mContentResolver.query(HabitProvider.URI_HABIT_GROUPS, null, null, null, null);
         for(c.moveToFirst(); !c.isAfterLast(); c.moveToNext()){
@@ -153,4 +166,5 @@ public class HabitProviderTests extends TestCase {
         }
         c.close();
     }
+
 }

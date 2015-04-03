@@ -63,6 +63,7 @@ public class HabitProvider extends ContentProvider {
         sdb = db.getWritableDatabase();
         sdb.beginTransaction();
         sdb.delete(TABLE_HABIT_GROUPS, null, null);
+        sdb.delete(TABLE_REPEATING, null, null);
         while (numEntries-- > 0) {
             ContentValues cv = new ContentValues();
             cv.put(TITLE, habitGroupPrefix + numEntries);
@@ -84,7 +85,7 @@ public class HabitProvider extends ContentProvider {
         return String.format("%s=?", field);
     }
     public static String whereID(){
-        return String.format("%s=?", ID);
+        return whereEquals(ID);
     }
 
     public static String[] idArgs(Number id){
@@ -101,8 +102,13 @@ public class HabitProvider extends ContentProvider {
                 if(deleted > 0)
                     getContext().getContentResolver().notifyChange(URI_HABIT_GROUPS, null);
                 return deleted;
+            case KEY_REPEATING:
+                deleted = sdb.delete(TABLE_REPEATING, selection, selectionArgs);
+                if(deleted > 0)
+                    getContext().getContentResolver().notifyChange(URI_REPEATING, null);
+                return deleted;
             default:
-                throw new IllegalStateException("Unknoen uri");
+                throw new IllegalStateException("Unknown uri");
         }
     }
 
@@ -162,7 +168,7 @@ public class HabitProvider extends ContentProvider {
 
     private class DatabaseOpenHelper extends SQLiteOpenHelper {
 
-        private static final int DATABASE_VERSION = 3;
+        private static final int DATABASE_VERSION = 4;
 
         public DatabaseOpenHelper(Context context) {
             super(context, DATABASE_NAME, null, DATABASE_VERSION);
