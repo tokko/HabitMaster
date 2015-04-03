@@ -1,7 +1,7 @@
 package com.tokko.habitgroups;
 
 import android.app.Activity;
-import android.app.Fragment;
+import android.app.ListFragment;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -18,7 +18,7 @@ import com.tokko.provider.HabitProvider;
 
 import org.joda.time.DateTimeConstants;
 
-public class HabitgroupEditor extends Fragment implements View.OnClickListener {
+public class HabitgroupEditor extends ListFragment implements View.OnClickListener {
     private static final String EXTRA_ID = "extra_id";
     private static final String EXTRA_TITLE = "extra_title";
     private static final String EXTRA_HOUR = "extra_hour";
@@ -52,6 +52,7 @@ public class HabitgroupEditor extends Fragment implements View.OnClickListener {
         cancelButton = (Button) v.findViewById(R.id.habitgroupeditor_cancel);
         titleEditText = (EditText) v.findViewById(R.id.habitgroupedit_title);
         startTimeTimePicker = (TimePicker) v.findViewById(R.id.habitgroupedit_startTime);
+
         return v;
     }
 
