@@ -1,10 +1,13 @@
 package com.tokko.config;
 
 import android.app.Activity;
+import android.content.ContentProviderOperation;
 import android.content.ContentValues;
+import android.content.OperationApplicationException;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.RemoteException;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,6 +19,7 @@ import com.tokko.R;
 import com.tokko.Util.TimeUtils;
 import com.tokko.provider.HabitProvider;
 
+import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
 
 import java.util.ArrayList;
@@ -141,18 +145,34 @@ public class HabitgroupEditorFragment extends Fragment implements View.OnClickLi
                 host.editorPickTime(hour, minute);
                 return;
             case R.id.habitgroupeditor_ok:
-                ContentValues cv = new ContentValues();
-                cv.put(HabitProvider.TITLE, titleEditText.getText().toString());
-                cv.put(HabitProvider.TIME, hour * DateTimeConstants.MILLIS_PER_HOUR + minute * DateTimeConstants.MILLIS_PER_MINUTE);
-                if(id == -1)
-                    getActivity().getContentResolver().insert(getUri(), cv);
-                else
-                    getActivity().getContentResolver().update(getUri(), cv, String.format("%s=?", HabitProvider.ID), new String[]{String.valueOf(id)});
+                ArrayList<ContentProviderOperation> ops = new ArrayList<>();
+                ContentProviderOperation.Builder opb;
+                if(id == -1) {
+                    opb = ContentProviderOperation.newInsert(getUri());
+                }
+                else {
+                    opb = ContentProviderOperation.newUpdate(getUri());
+                    opb.withSelection(HabitProvider.whereID(), HabitProvider.idArgs(id));
+                }
+                opb.withValue(HabitProvider.TITLE, titleEditText.getText().toString());
+                opb.withValue(HabitProvider.TIME, hour * DateTimeConstants.MILLIS_PER_HOUR + minute * DateTimeConstants.MILLIS_PER_MINUTE);
+                ops.add(opb.build());
+                persistWeekdays(ops);
+                try {
+                    getActivity().getContentResolver().applyBatch(HabitProvider.AUTHORITY, ops);
+                } catch (RemoteException | OperationApplicationException e) {
+                    e.printStackTrace();
+                    throw new IllegalStateException("FUCK!");
+                }
                 break;
             case R.id.habitgroupeditor_delete:
                 getActivity().getContentResolver().delete(getUri(), String.format("%s=?", HabitProvider.ID), new String[]{String.valueOf(id)});
         }
         host.onEditFinished();
+    }
+
+    protected void persistWeekdays(ArrayList<ContentProviderOperation> ops){
+        //todo implement
     }
 
     public void onTimePicked(int hour, int minute){
