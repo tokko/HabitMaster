@@ -4,7 +4,9 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.app.ListFragment;
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class HabitgroupEditor extends Fragment implements View.OnClickListener {
-    private static final String EXTRA_ID = "extra_id";
+    protected static final String EXTRA_ID = "extra_id";
     private static final String EXTRA_TITLE = "extra_title";
     private static final String EXTRA_HOUR = "extra_hour";
     private static final String EXTRA_MINUTE = "extra_minute";
@@ -41,6 +43,7 @@ public class HabitgroupEditor extends Fragment implements View.OnClickListener {
     private ArrayList<Integer> weekdays;
     private String title;
 
+
     public static HabitgroupEditor newInstance(long id){
         Bundle b = new Bundle();
         b.putLong(EXTRA_ID, id);
@@ -49,8 +52,8 @@ public class HabitgroupEditor extends Fragment implements View.OnClickListener {
         return f;
     }
 
-    public static HabitgroupEditor newInstance(){
-        return newInstance(-1);
+    protected Uri getUri(){
+        return HabitProvider.URI_HABIT_GROUPS;
     }
 
     @Override
@@ -66,7 +69,7 @@ public class HabitgroupEditor extends Fragment implements View.OnClickListener {
         else if(getArguments() != null){
             id = getArguments().getLong(EXTRA_ID, -1);
             if(id > -1){
-                Cursor c = getActivity().getContentResolver().query(HabitProvider.URI_HABIT_GROUPS, null, String.format("%s=?", HabitProvider.ID), new String[]{String.valueOf(id)}, null);
+                Cursor c = getActivity().getContentResolver().query(getUri(), null, String.format("%s=?", HabitProvider.ID), new String[]{String.valueOf(id)}, null);
                 if(!c.moveToFirst()) throw new IllegalStateException("No habit group found");
                 if(c.getCount() != 1) throw new IllegalStateException("Expected only one habit group");
                 long time = c.getLong(c.getColumnIndex(HabitProvider.TIME));
@@ -145,12 +148,12 @@ public class HabitgroupEditor extends Fragment implements View.OnClickListener {
                 cv.put(HabitProvider.TITLE, titleEditText.getText().toString());
                 cv.put(HabitProvider.TIME, hour * DateTimeConstants.MILLIS_PER_HOUR + minute * DateTimeConstants.MILLIS_PER_MINUTE);
                 if(id == -1)
-                    getActivity().getContentResolver().insert(HabitProvider.URI_HABIT_GROUPS, cv);
+                    getActivity().getContentResolver().insert(getUri(), cv);
                 else
-                    getActivity().getContentResolver().update(HabitProvider.URI_HABIT_GROUPS, cv, String.format("%s=?", HabitProvider.ID), new String[]{String.valueOf(id)});
+                    getActivity().getContentResolver().update(getUri(), cv, String.format("%s=?", HabitProvider.ID), new String[]{String.valueOf(id)});
                 break;
             case R.id.habitgroupeditor_delete:
-                getActivity().getContentResolver().delete(HabitProvider.URI_HABIT_GROUPS, String.format("%s=?", HabitProvider.ID), new String[]{String.valueOf(id)});
+                getActivity().getContentResolver().delete(getUri(), String.format("%s=?", HabitProvider.ID), new String[]{String.valueOf(id)});
         }
         host.onEditFinished();
     }

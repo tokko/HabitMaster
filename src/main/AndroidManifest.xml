@@ -10,12 +10,15 @@
 
         </activity>
 
-        <activity android:name=".habitgroups.HabitgroupActivity">
+        <activity android:name=".habits.HabitActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        <activity android:name=".habitgroups.HabitgroupActivity">
+
         </activity>
         <provider
             android:name=".provider.HabitProvider"
