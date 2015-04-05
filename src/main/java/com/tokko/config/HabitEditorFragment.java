@@ -1,5 +1,6 @@
 package com.tokko.config;
 
+import android.content.ContentProviderOperation;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
@@ -7,6 +8,8 @@ import android.widget.Button;
 
 import com.tokko.R;
 import com.tokko.provider.HabitProvider;
+
+import java.util.ArrayList;
 
 public class HabitEditorFragment extends HabitgroupEditorFragment {
 
@@ -28,5 +31,10 @@ public class HabitEditorFragment extends HabitgroupEditorFragment {
     @Override
     protected Uri getUri() {
         return HabitProvider.URI_HABITS;
+    }
+
+    @Override
+    protected void persistWeekdays(ArrayList<ContentProviderOperation> ops) {
+        //do nothing
     }
 }
