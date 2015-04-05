@@ -39,6 +39,7 @@ public class HabitgroupEditor extends Fragment implements View.OnClickListener {
     private int minute;
     private Button pickWeekdaysButton;
     private ArrayList<Integer> weekdays;
+    private String title;
 
     public static HabitgroupEditor newInstance(long id){
         Bundle b = new Bundle();
@@ -50,6 +51,37 @@ public class HabitgroupEditor extends Fragment implements View.OnClickListener {
 
     public static HabitgroupEditor newInstance(){
         return newInstance(-1);
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if(savedInstanceState != null){
+            title = savedInstanceState.getString(EXTRA_TITLE, "");
+            id = savedInstanceState.getLong(EXTRA_ID, -1);
+            hour = savedInstanceState.getInt(EXTRA_HOUR);
+            minute = savedInstanceState.getInt(EXTRA_MINUTE);
+            weekdays = savedInstanceState.getIntegerArrayList(EXTRA_WEEKDAYS);
+        }
+        else if(getArguments() != null){
+            id = getArguments().getLong(EXTRA_ID, -1);
+            if(id > -1){
+                Cursor c = getActivity().getContentResolver().query(HabitProvider.URI_HABIT_GROUPS, null, String.format("%s=?", HabitProvider.ID), new String[]{String.valueOf(id)}, null);
+                if(!c.moveToFirst()) throw new IllegalStateException("No habit group found");
+                if(c.getCount() != 1) throw new IllegalStateException("Expected only one habit group");
+                long time = c.getLong(c.getColumnIndex(HabitProvider.TIME));
+                hour = TimeUtils.extractHours(time);
+                minute = TimeUtils.extractMinutes(time);
+                title = c.getString(c.getColumnIndex(HabitProvider.TITLE));
+                c.close();
+
+                weekdays = new ArrayList<>();
+                c = getActivity().getContentResolver().query(HabitProvider.URI_REPEATING, null, HabitProvider.whereEquals(HabitProvider.HABIT_GROUP), HabitProvider.idArgs(id), null);
+                for(c.moveToFirst(); !c.isAfterLast(); c.moveToNext())
+                    weekdays.add(c.getInt(c.getColumnIndex(HabitProvider.WEEKDAY)));
+                c.close();
+            }
+        }
     }
 
     @Override
@@ -67,32 +99,9 @@ public class HabitgroupEditor extends Fragment implements View.OnClickListener {
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        if(savedInstanceState != null){
-            titleEditText.setText(savedInstanceState.getString(EXTRA_TITLE, ""));
-            id = savedInstanceState.getLong(EXTRA_ID, -1);
-            hour = savedInstanceState.getInt(EXTRA_HOUR);
-            minute = savedInstanceState.getInt(EXTRA_MINUTE);
-            weekdays = savedInstanceState.getIntegerArrayList(EXTRA_WEEKDAYS);
-        }
-        else if(getArguments() != null){
-            id = getArguments().getLong(EXTRA_ID, -1);
-            if(id > -1){
-                Cursor c = getActivity().getContentResolver().query(HabitProvider.URI_HABIT_GROUPS, null, String.format("%s=?", HabitProvider.ID), new String[]{String.valueOf(id)}, null);
-                if(!c.moveToFirst()) throw new IllegalStateException("No habit group found");
-                if(c.getCount() != 1) throw new IllegalStateException("Expected only one habit group");
-                long time = c.getLong(c.getColumnIndex(HabitProvider.TIME));
-                hour = TimeUtils.extractHours(time);
-                minute = TimeUtils.extractMinutes(time);
-                titleEditText.setText(c.getString(c.getColumnIndex(HabitProvider.TITLE)));
-                c.close();
 
-                weekdays = new ArrayList<>();
-                c = getActivity().getContentResolver().query(HabitProvider.URI_REPEATING, null, HabitProvider.whereEquals(HabitProvider.HABIT_GROUP), HabitProvider.idArgs(id), null);
-                for(c.moveToFirst(); !c.isAfterLast(); c.moveToNext())
-                    weekdays.add(c.getInt(c.getColumnIndex(HabitProvider.WEEKDAY)));
-                c.close();
-            }
-        }
+        titleEditText.setText(title);
+
         deleteButton.setEnabled(id > -1);
         okButton.setOnClickListener(this);
         deleteButton.setOnClickListener(this);
@@ -118,7 +127,8 @@ public class HabitgroupEditor extends Fragment implements View.OnClickListener {
         outState.putString(EXTRA_TITLE, titleEditText.getText().toString());
         outState.putLong(EXTRA_ID, id);
         outState.putInt(EXTRA_HOUR, hour);
-        outState.putInt(EXTRA_MINUTE, hour);
+        outState.putInt(EXTRA_MINUTE, minute);
+        outState.putIntegerArrayList(EXTRA_WEEKDAYS, weekdays);
     }
 
     @Override

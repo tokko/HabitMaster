@@ -84,9 +84,8 @@ public class WeekdayPickerDialogFragment extends DialogFragment implements View.
         switch (view.getId()){
             case R.id.weekdaypicker_ok:
                ArrayList<Integer> weekdays = new ArrayList<>();
-                SparseBooleanArray checked = list.getCheckedItemPositions();
-                for (int i = 0; i < checked.size(); i++) {
-                     if(checked.get(i)) weekdays.add(i+1);
+                for (int i = 0; i < list.getCount(); i++) {
+                     if(list.isItemChecked(i)) weekdays.add(i+1);
                 }
                 host.onWeekdayPicked(weekdays);
             case R.id.weekdaypicker_cancel:
