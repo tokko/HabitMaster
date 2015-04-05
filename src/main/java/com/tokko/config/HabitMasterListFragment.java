@@ -1,25 +1,25 @@
 package com.tokko.config;
 
 import android.app.Activity;
-import android.app.ListFragment;
-import android.app.LoaderManager;
-import android.content.CursorLoader;
-import android.content.Loader;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.app.ListFragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
+import android.support.v4.widget.CursorAdapter;
+import android.support.v4.widget.SimpleCursorAdapter;
 import android.view.View;
-import android.widget.CursorAdapter;
 import android.widget.ListView;
-import android.widget.SimpleCursorAdapter;
 
 import com.tokko.provider.HabitProvider;
 
-public class HabitgroupListFragment extends ListFragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class HabitMasterListFragment extends ListFragment implements LoaderManager.LoaderCallbacks<Cursor> {
     private final static String EXTRA_URI = "extra_uri";
     private Uri uri;
     private CursorAdapter adapter;
-    private HabitGroupListFragmentHost host;
+    private HabitMasterListFragmentCallbacks host;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -30,10 +30,10 @@ public class HabitgroupListFragment extends ListFragment implements LoaderManage
             uri = Uri.parse(getArguments().getString(EXTRA_URI, ""));
     }
 
-    public static HabitgroupListFragment newInstance(Uri uri){
+    public static HabitMasterListFragment newInstance(Uri uri){
         Bundle b = new Bundle();
         b.putString(EXTRA_URI, uri.toString());
-        HabitgroupListFragment f = new HabitgroupListFragment();
+        HabitMasterListFragment f = new HabitMasterListFragment();
         f.setArguments(b);
         return f;
     }
@@ -57,15 +57,9 @@ public class HabitgroupListFragment extends ListFragment implements LoaderManage
         return cl;
     }
 
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        try {
-            host  = (HabitGroupListFragmentHost) activity;
-        }
-        catch (ClassCastException ignored){
-            throw new IllegalStateException("Parent activity must inherit proper interface");
-        }
+    public HabitMasterListFragment setCallbacks(HabitMasterListFragmentCallbacks callbacks){
+        host = callbacks;
+        return this;
     }
 
     @Override
@@ -94,14 +88,14 @@ public class HabitgroupListFragment extends ListFragment implements LoaderManage
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
         super.onListItemClick(l, v, position, id);
-        host.editHabitGroup(id);
+        host.onListItemEdit(id);
     }
 
-    public interface HabitGroupListFragmentHost{
+    public interface HabitMasterListFragmentCallbacks {
 
-        public void editHabitGroup(long id);
+        public void onListItemEdit(long id);
 
-        public void addHabitGroup();
+        public void onAddListItem();
     }
 
 }

@@ -1,94 +1,54 @@
 package com.tokko.config;
 
-import android.app.Activity;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.view.ViewPager;
 
-import com.tokko.dialogs.TimePickerDialogFragment;
-import com.tokko.dialogs.WeekdayPickerDialogFragment;
-import com.tokko.provider.HabitProvider;
+import com.tokko.R;
+import com.tokko.slidingtabs.SlidingTabLayout;
 
-import java.util.ArrayList;
-
-
-public class ConfigActivity extends Activity implements HabitgroupListFragment.HabitGroupListFragmentHost, HabitgroupEditorFragment.HabitGroupEditorHost, TimePickerDialogFragment.TimePickerDialogCallbacks, WeekdayPickerDialogFragment.WeekdayPickerCallbacks{
-    private static final String TAG_EDITOR_FRAGMENT = "editor_fragment";
-    private HabitgroupEditorFragment editorFragment;
+public class ConfigActivity extends FragmentActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getFragmentManager().beginTransaction().replace(android.R.id.content, getListFragment()).commit();
-        if(savedInstanceState != null){
-            editorFragment = (HabitgroupEditorFragment) getFragmentManager().getFragment(savedInstanceState, TAG_EDITOR_FRAGMENT);
-            if(editorFragment != null)
-                getFragmentManager().beginTransaction().replace(android.R.id.content, editorFragment).commit();
+        setContentView(R.layout.tabs);
+
+        HabitViewPagerAdapter adapter = new HabitViewPagerAdapter(getSupportFragmentManager(), new CharSequence[]{"Habitgroups", "Habits"}, new HabitMasterListFragment.HabitMasterListFragmentCallbacks[]{new HabitGroupCallbacks(), new HabitCallbacks()});
+
+        ViewPager pager = (ViewPager) findViewById(R.id.pager);
+        pager.setAdapter(adapter);
+        SlidingTabLayout tabLayout = (SlidingTabLayout) findViewById(R.id.tabs);
+        tabLayout.setDistributeEvenly(true);
+        tabLayout.setViewPager(pager);
+    }
+
+
+    private class HabitGroupCallbacks implements HabitMasterListFragment.HabitMasterListFragmentCallbacks{
+
+        @Override
+        public void onListItemEdit(long id) {
+            startActivity(EditorActivity.getEditGroupIntent(ConfigActivity.this, id));
+        }
+
+        @Override
+        public void onAddListItem() {
+            startActivity(EditorActivity.getAddGroupIntent(ConfigActivity.this));
         }
     }
 
-    protected HabitgroupListFragment getListFragment(){
-        return HabitgroupListFragment.newInstance(HabitProvider.URI_HABIT_GROUPS);
-    }
+    private class HabitCallbacks implements HabitMasterListFragment.HabitMasterListFragmentCallbacks{
 
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        if(editorFragment != null)
-            getFragmentManager().putFragment(outState, TAG_EDITOR_FRAGMENT, editorFragment);
-    }
-
-    @Override
-    public void editHabitGroup(long id) {
-        showEditorFragment(id);
-    }
-
-    @Override
-    public void addHabitGroup() {
-        showEditorFragment(-1);
-    }
-
-    @Override
-    public void onBackPressed() {
-        if(getFragmentManager().getBackStackEntryCount() > 0) {
-            getFragmentManager().popBackStack();
-            editorFragment = null;
+        @Override
+        public void onListItemEdit(long id) {
+            startActivity(EditorActivity.getEditHabitIntent(ConfigActivity.this, id));
         }
-        else
-            finish();
+
+        @Override
+        public void onAddListItem() {
+            startActivity(EditorActivity.getAddHabitIntent(ConfigActivity.this));
+        }
     }
 
-    protected HabitgroupEditorFragment getEditorFragment(long id){
-        return HabitgroupEditorFragment.newInstance(id);
-    }
-
-    private void showEditorFragment(long id){
-        editorFragment = getEditorFragment(id);
-        getFragmentManager().beginTransaction().addToBackStack(TAG_EDITOR_FRAGMENT).replace(android.R.id.content, editorFragment).commit();
-    }
-
-    @Override
-    public void editorPickWeekdays(ArrayList<Integer> currentWeekdays) {
-        WeekdayPickerDialogFragment.newInstance(currentWeekdays).show(getFragmentManager(), "t");
-    }
-
-    @Override
-    public void editorPickTime(int currentHour, int currentMinute) {
-        TimePickerDialogFragment.newInstance(0, currentHour, currentMinute).show(getFragmentManager(), "tag");
-    }
-
-    @Override
-    public void onEditFinished() {
-        getFragmentManager().popBackStack();
-    }
-
-    @Override
-    public void onTimeSet(int id, int hour, int minute) {
-        if(editorFragment != null)
-            editorFragment.onTimePicked(hour, minute);
-    }
-
-    @Override
-    public void onWeekdayPicked(ArrayList<Integer> weekdays) {
-        if(editorFragment != null)
-            editorFragment.onWeekdaysPicked(weekdays);
-    }
 }

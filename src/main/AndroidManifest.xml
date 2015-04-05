@@ -10,15 +10,18 @@
 
         </activity>
 
-        <activity android:name=".habits.HabitActivity">
+        <activity android:name=".config.EditorActivity">
+            <intent-filter>
+                <action android:name="ACTION_EDIT_GROUP" />
+                <action android:name="ACTION_EDIT_HABIT" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".config.ConfigActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
-        <activity android:name=".config.ConfigActivity">
-
         </activity>
         <provider
             android:name=".provider.HabitProvider"
