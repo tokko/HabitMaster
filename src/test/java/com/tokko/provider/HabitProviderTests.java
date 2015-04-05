@@ -22,6 +22,7 @@ import org.robolectric.shadows.ShadowContentResolver;
 public class HabitProviderTests extends TestCase {
     private static final String HABIT_GROUP_PREFIX = "HabitGroup";
     private static final int NUM_HABIT_GROUPS = 20;
+    private static final int NUM_HABITS = 10;
     private static final long HABIT_GROUP_START_TIME = 0;
     private static final long HABIT_GROUP_TIME_INCREMENT = DateTimeConstants.MILLIS_PER_HOUR;
     private HabitProvider mProvider;
@@ -33,7 +34,7 @@ public class HabitProviderTests extends TestCase {
         mContentResolver = Robolectric.application.getContentResolver();
         mProvider.onCreate();
         ShadowContentResolver.registerProvider(HabitProvider.AUTHORITY, mProvider);
-        mProvider.seed(NUM_HABIT_GROUPS, HABIT_GROUP_PREFIX, HABIT_GROUP_START_TIME, HABIT_GROUP_TIME_INCREMENT);
+        mProvider.seed(NUM_HABIT_GROUPS, HABIT_GROUP_PREFIX, HABIT_GROUP_START_TIME, HABIT_GROUP_TIME_INCREMENT, NUM_HABITS);
     }
 
     @Test
@@ -155,6 +156,7 @@ public class HabitProviderTests extends TestCase {
         assertEquals(0, after.getCount());
         after.close();
     }
+
     @Test
     public void testGetRepeatings(){
         Cursor c = mContentResolver.query(HabitProvider.URI_HABIT_GROUPS, null, null, null, null);
@@ -167,4 +169,16 @@ public class HabitProviderTests extends TestCase {
         c.close();
     }
 
+    @Test
+    public void testGetHabits(){
+        Cursor c = mContentResolver.query(HabitProvider.URI_HABITS, null, null, null, null);
+        assertNotNull(c);
+        assertEquals(10, c.getCount());
+        int i = NUM_HABITS-1;
+        for(assertTrue(c.moveToFirst()); !c.isAfterLast(); c.moveToNext()){
+            assertEquals("HABIT" + i--, c.getString(c.getColumnIndex(HabitProvider.TITLE)));
+            assertEquals(0, c.getLong(c.getColumnIndex(HabitProvider.TIME)));
+        }
+        c.close();
+    }
 }
