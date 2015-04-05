@@ -117,6 +117,11 @@ public class HabitProvider extends ContentProvider {
                 if(deleted > 0)
                     getContext().getContentResolver().notifyChange(URI_REPEATING, null);
                 return deleted;
+            case KEY_HABITS:
+                deleted = sdb.delete(TABLE_HABITS, selection, selectionArgs);
+                if(deleted > 0)
+                    getContext().getContentResolver().notifyChange(URI_HABITS, null);
+                return deleted;
             default:
                 throw new IllegalStateException("Unknown uri");
         }

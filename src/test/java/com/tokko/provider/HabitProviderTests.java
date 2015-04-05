@@ -181,4 +181,19 @@ public class HabitProviderTests extends TestCase {
         }
         c.close();
     }
+
+    @Test
+    public void testDeleteHabit(){
+        Cursor habits = mContentResolver.query(HabitProvider.URI_HABITS, null, null, null, null);
+        habits.moveToFirst();
+        long id = habits.getLong(habits.getColumnIndex(HabitProvider.ID));
+        int deleted = mContentResolver.delete(HabitProvider.URI_HABITS, HabitProvider.whereID(), HabitProvider.idArgs(id));
+        assertEquals(1, deleted);
+        Cursor after = mContentResolver.query(HabitProvider.URI_HABITS, null, null, null, null);
+        assertEquals(habits.getCount()-1, after.getCount());
+        for(after.moveToFirst(); !after.isAfterLast(); after.moveToNext())
+            assertTrue(id != after.getLong(after.getColumnIndex(HabitProvider.ID)));
+        habits.close();
+        after.close();
+    }
 }
