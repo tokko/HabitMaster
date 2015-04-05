@@ -17,6 +17,8 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowContentResolver;
 
+import java.util.logging.Handler;
+
 @Config(emulateSdk = 18, manifest = "app/src/main/AndroidManifest.xml")
 @RunWith(RobolectricTestRunner.class)
 public class HabitProviderTests extends TestCase {
@@ -195,5 +197,22 @@ public class HabitProviderTests extends TestCase {
             assertTrue(id != after.getLong(after.getColumnIndex(HabitProvider.ID)));
         habits.close();
         after.close();
+    }
+
+    @Test
+    public void updateHabit(){
+        final String newTitle = "bananfisk2000";
+        Cursor habits = mContentResolver.query(HabitProvider.URI_HABITS, null, null, null, null);
+        habits.moveToFirst();
+        long id = habits.getLong(habits.getColumnIndex(HabitProvider.ID));
+        habits.close();
+        ContentValues cv = new ContentValues();
+        cv.put(HabitProvider.TITLE, newTitle);
+        int updated = mContentResolver.update(HabitProvider.URI_HABITS, cv, HabitProvider.whereID(), HabitProvider.idArgs(id));
+        assertEquals(1, updated);
+        habits = mContentResolver.query(HabitProvider.URI_HABITS, null, HabitProvider.whereID(), HabitProvider.idArgs(id), null);
+        habits.moveToFirst();
+        assertEquals(newTitle, habits.getString(habits.getColumnIndex(HabitProvider.TITLE)));
+        habits.close();
     }
 }

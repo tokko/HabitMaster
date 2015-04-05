@@ -5,6 +5,7 @@ import android.os.Bundle;
 
 import com.tokko.dialogs.TimePickerDialogFragment;
 import com.tokko.dialogs.WeekdayPickerDialogFragment;
+import com.tokko.provider.HabitProvider;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,12 +18,16 @@ public class HabitgroupActivity extends Activity implements HabitgroupListFragme
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getFragmentManager().beginTransaction().replace(android.R.id.content, new HabitgroupListFragment()).commit();
+        getFragmentManager().beginTransaction().replace(android.R.id.content, getListFragment()).commit();
         if(savedInstanceState != null){
             editorFragment = (HabitgroupEditor) getFragmentManager().getFragment(savedInstanceState, TAG_EDITOR_FRAGMENT);
             if(editorFragment != null)
                 getFragmentManager().beginTransaction().replace(android.R.id.content, editorFragment).commit();
         }
+    }
+
+    protected HabitgroupListFragment getListFragment(){
+        return HabitgroupListFragment.newInstance(HabitProvider.URI_HABIT_GROUPS);
     }
 
     @Override
@@ -52,8 +57,12 @@ public class HabitgroupActivity extends Activity implements HabitgroupListFragme
             finish();
     }
 
+    protected HabitgroupEditor getEditorFragment(long id){
+        return HabitgroupEditor.newInstance(id);
+    }
+
     private void showEditorFragment(long id){
-        editorFragment = HabitgroupEditor.newInstance(id);
+        editorFragment = getEditorFragment(id);
         getFragmentManager().beginTransaction().addToBackStack(TAG_EDITOR_FRAGMENT).replace(android.R.id.content, editorFragment).commit();
     }
 

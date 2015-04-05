@@ -6,6 +6,7 @@ import android.app.LoaderManager;
 import android.content.CursorLoader;
 import android.content.Loader;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.CursorAdapter;
@@ -15,9 +16,27 @@ import android.widget.SimpleCursorAdapter;
 import com.tokko.provider.HabitProvider;
 
 public class HabitgroupListFragment extends ListFragment implements LoaderManager.LoaderCallbacks<Cursor> {
-
+    private final static String EXTRA_URI = "extra_uri";
+    private Uri uri;
     private CursorAdapter adapter;
     private HabitGroupListFragmentHost host;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if(savedInstanceState != null)
+            uri = Uri.parse(savedInstanceState.getString(EXTRA_URI, ""));
+        else if(getArguments() != null)
+            uri = Uri.parse(getArguments().getString(EXTRA_URI, ""));
+    }
+
+    public static HabitgroupListFragment newInstance(Uri uri){
+        Bundle b = new Bundle();
+        b.putString(EXTRA_URI, uri.toString());
+        HabitgroupListFragment f = new HabitgroupListFragment();
+        f.setArguments(b);
+        return f;
+    }
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
@@ -26,9 +45,15 @@ public class HabitgroupListFragment extends ListFragment implements LoaderManage
     }
 
     @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(EXTRA_URI, uri.toString());
+    }
+
+    @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         CursorLoader cl = new CursorLoader(getActivity());
-        cl.setUri(HabitProvider.URI_HABIT_GROUPS);
+        cl.setUri(uri);
         return cl;
     }
 

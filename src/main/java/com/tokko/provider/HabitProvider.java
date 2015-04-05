@@ -180,6 +180,11 @@ public class HabitProvider extends ContentProvider {
                 if(updated > 0)
                     getContext().getContentResolver().notifyChange(URI_HABIT_GROUPS, null);
                 return updated;
+            case KEY_HABITS:
+                updated = sdb.update(TABLE_HABITS, values, selection, selectionArgs);
+                if(updated > 0)
+                    getContext().getContentResolver().notifyChange(URI_HABITS, null);
+                return updated;
             default:
                 throw new IllegalStateException("Unknown uri");
         }
