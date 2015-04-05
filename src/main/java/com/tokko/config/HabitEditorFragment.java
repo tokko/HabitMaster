@@ -1,4 +1,4 @@
-package com.tokko.habits;
+package com.tokko.config;
 
 import android.net.Uri;
 import android.os.Bundle;
@@ -6,15 +6,14 @@ import android.view.View;
 import android.widget.Button;
 
 import com.tokko.R;
-import com.tokko.habitgroups.HabitgroupEditor;
 import com.tokko.provider.HabitProvider;
 
-public class HabitEditor extends HabitgroupEditor {
+public class HabitEditorFragment extends HabitgroupEditorFragment {
 
-    public static HabitEditor newInstance(long id){
+    public static HabitEditorFragment newInstance(long id){
         Bundle b = new Bundle();
         b.putLong(EXTRA_ID, id);
-        HabitEditor f = new HabitEditor();
+        HabitEditorFragment f = new HabitEditorFragment();
         f.setArguments(b);
         return f;
     }

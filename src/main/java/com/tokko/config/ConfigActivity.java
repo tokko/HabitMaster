@@ -1,4 +1,4 @@
-package com.tokko.habitgroups;
+package com.tokko.config;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -8,19 +8,18 @@ import com.tokko.dialogs.WeekdayPickerDialogFragment;
 import com.tokko.provider.HabitProvider;
 
 import java.util.ArrayList;
-import java.util.List;
 
 
-public class HabitgroupActivity extends Activity implements HabitgroupListFragment.HabitGroupListFragmentHost, HabitgroupEditor.HabitGroupEditorHost, TimePickerDialogFragment.TimePickerDialogCallbacks, WeekdayPickerDialogFragment.WeekdayPickerCallbacks{
+public class ConfigActivity extends Activity implements HabitgroupListFragment.HabitGroupListFragmentHost, HabitgroupEditorFragment.HabitGroupEditorHost, TimePickerDialogFragment.TimePickerDialogCallbacks, WeekdayPickerDialogFragment.WeekdayPickerCallbacks{
     private static final String TAG_EDITOR_FRAGMENT = "editor_fragment";
-    private HabitgroupEditor editorFragment;
+    private HabitgroupEditorFragment editorFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getFragmentManager().beginTransaction().replace(android.R.id.content, getListFragment()).commit();
         if(savedInstanceState != null){
-            editorFragment = (HabitgroupEditor) getFragmentManager().getFragment(savedInstanceState, TAG_EDITOR_FRAGMENT);
+            editorFragment = (HabitgroupEditorFragment) getFragmentManager().getFragment(savedInstanceState, TAG_EDITOR_FRAGMENT);
             if(editorFragment != null)
                 getFragmentManager().beginTransaction().replace(android.R.id.content, editorFragment).commit();
         }
@@ -57,8 +56,8 @@ public class HabitgroupActivity extends Activity implements HabitgroupListFragme
             finish();
     }
 
-    protected HabitgroupEditor getEditorFragment(long id){
-        return HabitgroupEditor.newInstance(id);
+    protected HabitgroupEditorFragment getEditorFragment(long id){
+        return HabitgroupEditorFragment.newInstance(id);
     }
 
     private void showEditorFragment(long id){

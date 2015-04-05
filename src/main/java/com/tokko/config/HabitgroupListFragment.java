@@ -1,4 +1,4 @@
-package com.tokko.habitgroups;
+package com.tokko.config;
 
 import android.app.Activity;
 import android.app.ListFragment;

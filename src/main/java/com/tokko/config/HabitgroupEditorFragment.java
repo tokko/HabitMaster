@@ -1,10 +1,8 @@
-package com.tokko.habitgroups;
+package com.tokko.config;
 
 import android.app.Activity;
 import android.app.Fragment;
-import android.app.ListFragment;
 import android.content.ContentValues;
-import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -21,9 +19,8 @@ import com.tokko.provider.HabitProvider;
 import org.joda.time.DateTimeConstants;
 
 import java.util.ArrayList;
-import java.util.List;
 
-public class HabitgroupEditor extends Fragment implements View.OnClickListener {
+public class HabitgroupEditorFragment extends Fragment implements View.OnClickListener {
     protected static final String EXTRA_ID = "extra_id";
     private static final String EXTRA_TITLE = "extra_title";
     private static final String EXTRA_HOUR = "extra_hour";
@@ -44,10 +41,10 @@ public class HabitgroupEditor extends Fragment implements View.OnClickListener {
     private String title;
 
 
-    public static HabitgroupEditor newInstance(long id){
+    public static HabitgroupEditorFragment newInstance(long id){
         Bundle b = new Bundle();
         b.putLong(EXTRA_ID, id);
-        HabitgroupEditor f = new HabitgroupEditor();
+        HabitgroupEditorFragment f = new HabitgroupEditorFragment();
         f.setArguments(b);
         return f;
     }

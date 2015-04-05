@@ -17,7 +17,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".habitgroups.HabitgroupActivity">
+        <activity android:name=".config.ConfigActivity">
 
         </activity>
         <provider
