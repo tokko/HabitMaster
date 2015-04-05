@@ -1,6 +1,7 @@
 package com.tokko.provider;
 
 import android.content.ContentProvider;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.UriMatcher;
@@ -136,8 +137,18 @@ public class HabitProvider extends ContentProvider {
 
     @Override
     public Uri insert(Uri uri, ContentValues values) {
-        // TODO: Implement this to handle requests to insert a new row.
-        throw new UnsupportedOperationException("Not yet implemented");
+        sdb = db.getWritableDatabase();
+        switch (um.match(uri)){
+            case KEY_REPEATING:
+                long id = sdb.insert(TABLE_REPEATING, null, values);
+                if(id > -1){
+                    uri = ContentUris.withAppendedId(uri, id);
+                    getContext().getContentResolver().notifyChange(URI_REPEATING, null);
+                }
+                return uri;
+            default:
+                throw new IllegalStateException("Unknown URI");
+        }
     }
 
     @Override

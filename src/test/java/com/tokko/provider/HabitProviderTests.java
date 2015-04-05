@@ -1,8 +1,10 @@
 package com.tokko.provider;
 
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.net.Uri;
 
 import junit.framework.Assert;
 import junit.framework.TestCase;
@@ -105,6 +107,10 @@ public class HabitProviderTests extends TestCase {
     @Test(expected = IllegalStateException.class)
     public void deleteInvalidUri_ThrowsIllegalStateException() {
         mContentResolver.delete(HabitProvider.URI_GET_HABIT_INVALID, null, null);
+    }
+    @Test(expected = IllegalStateException.class)
+    public void insertInvalidUri_ThrowsIllegalStateException() {
+        mContentResolver.insert(HabitProvider.URI_GET_HABIT_INVALID, null);
     }
 
     @Test
@@ -214,5 +220,30 @@ public class HabitProviderTests extends TestCase {
         habits.moveToFirst();
         assertEquals(newTitle, habits.getString(habits.getColumnIndex(HabitProvider.TITLE)));
         habits.close();
+    }
+
+    @Test
+    public void insertRepeating(){
+        final int weekday = 1;
+        Cursor repeating = mContentResolver.query(HabitProvider.URI_REPEATING, null, null, null, null);
+        repeating.moveToFirst();
+        long id = repeating.getLong(repeating.getColumnIndex(HabitProvider.ID));
+        ContentValues cv = new ContentValues();
+        cv.put(HabitProvider.HABIT_GROUP, id);
+        cv.put(HabitProvider.WEEKDAY, weekday);
+        Uri insertedUri = mContentResolver.insert(HabitProvider.URI_REPEATING, cv);
+        long newRowId = ContentUris.parseId(insertedUri);
+        Cursor repeating2 = mContentResolver.query(HabitProvider.URI_REPEATING, null, null, null, null);
+        assertEquals(repeating.getCount()+1, repeating2.getCount());
+        Cursor c = mContentResolver.query(HabitProvider.URI_REPEATING, null, HabitProvider.whereID(), HabitProvider.idArgs(newRowId), null);
+        assertNotNull(c);
+        assertTrue(c.moveToFirst());
+        assertEquals(1, c.getCount());
+        assertEquals(weekday, c.getInt(c.getColumnIndex(HabitProvider.WEEKDAY)));
+        assertEquals(id, c.getLong(c.getColumnIndex(HabitProvider.HABIT_GROUP)));
+
+        repeating.close();
+        repeating2.close();
+        c.close();
     }
 }

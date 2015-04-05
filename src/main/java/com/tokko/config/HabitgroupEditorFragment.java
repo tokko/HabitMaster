@@ -166,13 +166,16 @@ public class HabitgroupEditorFragment extends Fragment implements View.OnClickLi
                 }
                 break;
             case R.id.habitgroupeditor_delete:
-                getActivity().getContentResolver().delete(getUri(), String.format("%s=?", HabitProvider.ID), new String[]{String.valueOf(id)});
+                getActivity().getContentResolver().delete(HabitProvider.URI_HABIT_GROUPS, String.format("%s=?", HabitProvider.ID), new String[]{String.valueOf(id)});
         }
         host.onEditFinished();
     }
 
     protected void persistWeekdays(ArrayList<ContentProviderOperation> ops){
-        //todo implement
+        ops.add(ContentProviderOperation.newDelete(HabitProvider.URI_REPEATING).withSelection(HabitProvider.whereEquals(HabitProvider.HABIT_GROUP), HabitProvider.idArgs(id)).build());
+        for (int i = 0; i < weekdays.size(); i++) {
+            ops.add(ContentProviderOperation.newInsert(HabitProvider.URI_REPEATING).withValue(HabitProvider.HABIT_GROUP, id).withValue(HabitProvider.WEEKDAY, weekdays.get(i)).build());
+        }
     }
 
     public void onTimePicked(int hour, int minute){
