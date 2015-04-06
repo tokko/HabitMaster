@@ -255,4 +255,19 @@ public class HabitProviderTests extends TestCase {
         assertEquals(3, c.getColumnCount());
         c.close();
     }
+
+    @Test
+    public void removeConnections(){
+        Cursor c = mContentResolver.query(HabitProvider.URI_HABITS_IN_GROUP, null, null, null, null);
+        c.moveToFirst();
+        long habitGroup = c.getLong(c.getColumnIndex(HabitProvider.HABIT_GROUP));
+        int deleted = mContentResolver.delete(HabitProvider.URI_HABITS_IN_GROUP, HabitProvider.whereEquals(HabitProvider.HABIT_GROUP), HabitProvider.idArgs(habitGroup));
+        assertEquals(NUM_HABITS/2, deleted);
+        Cursor c2 = mContentResolver.query(HabitProvider.URI_HABITS_IN_GROUP, null, null, null, null);
+        assertEquals(c.getCount()-deleted, c2.getCount());
+        for(c2.moveToFirst(); !c.isAfterLast(); c.moveToNext())
+            assertTrue(c2.getLong(c.getColumnIndex(HabitProvider.HABIT_GROUP)) != habitGroup);
+        c.close();
+        c2.close();
+    }
 }

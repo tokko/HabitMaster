@@ -75,6 +75,7 @@ public class HabitProvider extends ContentProvider {
         sdb.delete(TABLE_HABIT_GROUPS, null, null);
         sdb.delete(TABLE_REPEATING, null, null);
         sdb.delete(TABLE_HABITS, null, null);
+        sdb.delete(TABLE_HABITS_IN_GROUP, null, null);
         long[] groupIds = new long[numEntries];
         while (--numEntries >= 0) {
             ContentValues cv = new ContentValues();
@@ -138,6 +139,11 @@ public class HabitProvider extends ContentProvider {
                 deleted = sdb.delete(TABLE_HABITS, selection, selectionArgs);
                 if(deleted > 0)
                     getContext().getContentResolver().notifyChange(URI_HABITS, null);
+                return deleted;
+            case KEY_HABITS_IN_GROUP:
+                deleted = sdb.delete(TABLE_HABITS_IN_GROUP, selection, selectionArgs);
+                if(deleted > 0)
+                    getContext().getContentResolver().notifyChange(URI_HABITS_IN_GROUP, null);
                 return deleted;
             default:
                 throw new IllegalStateException("Unknown uri");
