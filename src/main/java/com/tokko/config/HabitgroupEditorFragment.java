@@ -2,34 +2,39 @@ package com.tokko.config;
 
 import android.app.Activity;
 import android.content.ContentProviderOperation;
-import android.content.ContentValues;
 import android.content.OperationApplicationException;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.RemoteException;
-import android.support.v4.app.Fragment;
+import android.support.v4.app.ListFragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CursorAdapter;
 import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.SimpleCursorAdapter;
 
 import com.tokko.R;
 import com.tokko.Util.TimeUtils;
 import com.tokko.provider.HabitProvider;
 
-import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
 
 import java.util.ArrayList;
 
-public class HabitgroupEditorFragment extends Fragment implements View.OnClickListener {
+public class HabitgroupEditorFragment extends ListFragment implements View.OnClickListener, LoaderManager.LoaderCallbacks<Cursor> {
     protected static final String EXTRA_ID = "extra_id";
     private static final String EXTRA_TITLE = "extra_title";
     private static final String EXTRA_HOUR = "extra_hour";
     private static final String EXTRA_MINUTE = "extra_minute";
     private static final String EXTRA_WEEKDAYS = "extra_weekdays";
+    private static final String EXTRA_CHECKED = "extra_checked";
 
     private Button okButton;
     private Button deleteButton;
@@ -44,6 +49,7 @@ public class HabitgroupEditorFragment extends Fragment implements View.OnClickLi
     private ArrayList<Integer> weekdays;
     private String title;
 
+    private CursorAdapter adapter;
 
     public static HabitgroupEditorFragment newInstance(long id){
         Bundle b = new Bundle();
@@ -86,6 +92,7 @@ public class HabitgroupEditorFragment extends Fragment implements View.OnClickLi
                 c.close();
             }
         }
+        adapter = new SimpleCursorAdapter(getActivity(), android.R.layout.simple_list_item_multiple_choice, null, new String[]{HabitProvider.TITLE}, new int[]{android.R.id.text1}, 0);
     }
 
     @Override
@@ -112,6 +119,16 @@ public class HabitgroupEditorFragment extends Fragment implements View.OnClickLi
         cancelButton.setOnClickListener(this);
         setTimeButton.setOnClickListener(this);
         pickWeekdaysButton.setOnClickListener(this);
+
+        setListAdapter(adapter);
+        getListView().setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+        if(savedInstanceState != null)
+            setItemsChecked(savedInstanceState.getIntegerArrayList(EXTRA_CHECKED));
+    }
+
+    private void setItemsChecked(ArrayList<Integer> checked){
+        for (Integer integer : checked)
+            getListView().setItemChecked(integer, true);
     }
 
     @Override
@@ -126,6 +143,18 @@ public class HabitgroupEditorFragment extends Fragment implements View.OnClickLi
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+        getLoaderManager().initLoader(0, null, this);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        getLoaderManager().destroyLoader(0);
+    }
+
+    @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putString(EXTRA_TITLE, titleEditText.getText().toString());
@@ -133,6 +162,7 @@ public class HabitgroupEditorFragment extends Fragment implements View.OnClickLi
         outState.putInt(EXTRA_HOUR, hour);
         outState.putInt(EXTRA_MINUTE, minute);
         outState.putIntegerArrayList(EXTRA_WEEKDAYS, weekdays);
+        outState.putIntegerArrayList(EXTRA_CHECKED, getCheckedItems());
     }
 
     @Override
@@ -158,6 +188,7 @@ public class HabitgroupEditorFragment extends Fragment implements View.OnClickLi
                 opb.withValue(HabitProvider.TIME, hour * DateTimeConstants.MILLIS_PER_HOUR + minute * DateTimeConstants.MILLIS_PER_MINUTE);
                 ops.add(opb.build());
                 persistWeekdays(ops);
+                persistHabits(ops);
                 try {
                     getActivity().getContentResolver().applyBatch(HabitProvider.AUTHORITY, ops);
                 } catch (RemoteException | OperationApplicationException e) {
@@ -169,6 +200,21 @@ public class HabitgroupEditorFragment extends Fragment implements View.OnClickLi
                 getActivity().getContentResolver().delete(HabitProvider.URI_HABIT_GROUPS, String.format("%s=?", HabitProvider.ID), new String[]{String.valueOf(id)});
         }
         host.onEditFinished();
+    }
+
+    protected void persistHabits(ArrayList<ContentProviderOperation> ops) {
+        ops.add(ContentProviderOperation.newDelete(HabitProvider.URI_HABITS_IN_GROUP).withSelection(HabitProvider.whereEquals(HabitProvider.HABIT_GROUP), HabitProvider.idArgs(id)).build());
+        for(Integer integer : getCheckedItems())
+                ops.add(ContentProviderOperation.newInsert(HabitProvider.URI_HABITS_IN_GROUP).withValue(HabitProvider.HABIT_GROUP, id).withValue(HabitProvider.HABIT, getListView().getItemIdAtPosition(integer)).build());
+        }
+
+    private ArrayList<Integer> getCheckedItems() {
+        ArrayList<Integer> checked = new ArrayList<>();
+        for (int i = 0; i < getListView().getCount(); i++) {
+            if (getListView().isItemChecked(i))
+                checked.add(i);
+        }
+        return checked;
     }
 
     protected void persistWeekdays(ArrayList<ContentProviderOperation> ops){
@@ -187,7 +233,26 @@ public class HabitgroupEditorFragment extends Fragment implements View.OnClickLi
         this.weekdays = weekdays;
     }
 
-    public interface HabitGroupEditorHost{
+    @Override
+    public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
+        CursorLoader cl = new CursorLoader(getActivity());
+        cl.setUri(HabitProvider.URI_HABITS);
+        return cl;
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
+        adapter.swapCursor(cursor);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> cursorLoader) {
+        adapter.swapCursor(null);
+    }
+
+
+
+public interface HabitGroupEditorHost{
         public void editorPickWeekdays(ArrayList<Integer> currentWeekdays);
 
         public void editorPickTime(int currentHour, int currentMinute);

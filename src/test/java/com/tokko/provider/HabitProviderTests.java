@@ -136,7 +136,7 @@ public class HabitProviderTests extends TestCase {
     @Test
     public void testDeleteHabitgroup(){
         Cursor before = mContentResolver.query(HabitProvider.URI_HABIT_GROUPS, null, null, null, null);
-        before.moveToPosition(before.getCount()/2);
+        before.moveToPosition(before.getCount() / 2);
         long id = before.getLong(before.getColumnIndex(HabitProvider.ID));
         int count = before.getCount();
         before.close();
@@ -269,5 +269,36 @@ public class HabitProviderTests extends TestCase {
             assertTrue(c2.getLong(c.getColumnIndex(HabitProvider.HABIT_GROUP)) != habitGroup);
         c.close();
         c2.close();
+    }
+
+    @Test
+    public void testInsertConnection(){
+        Cursor c = mContentResolver.query(HabitProvider.URI_HABITS_IN_GROUP, null, null, null, null);
+        Cursor groups = mContentResolver.query(HabitProvider.URI_HABIT_GROUPS, null, null, null, null);
+        Cursor habits = mContentResolver.query(HabitProvider.URI_HABITS, null, null, null, null);
+        groups.moveToLast();
+        habits.moveToLast();
+        long groupId = groups.getLong(groups.getColumnIndex(HabitProvider.ID));
+        long habitId = habits.getLong(habits.getColumnIndex(HabitProvider.ID));
+        ContentValues cv = new ContentValues();
+        cv.put(HabitProvider.HABIT, habitId);
+        cv.put(HabitProvider.HABIT_GROUP, groupId);
+        Uri newRowUri = mContentResolver.insert(HabitProvider.URI_HABIT_GROUPS, cv);
+        long newId = ContentUris.parseId(newRowUri);
+        assertTrue(newId != -1);
+        Cursor c2 = mContentResolver.query(HabitProvider.URI_HABITS_IN_GROUP, null, HabitProvider.whereID(), HabitProvider.idArgs(newId), null);
+        assertNotNull(c2);
+        assertTrue(c2.moveToFirst());
+        assertEquals(1, c2.getCount());
+        assertEquals(groupId, c2.getLong(c.getColumnIndex(HabitProvider.HABIT_GROUP)));
+        assertEquals(habitId, c2.getLong(c.getColumnIndex(HabitProvider.HABIT)));
+        c2.close();
+        c2 = mContentResolver.query(HabitProvider.URI_HABITS_IN_GROUP, null, null, null, null);
+        assertEquals(c.getCount()+1, c2.getCount());
+        c.close();
+        c2.close();
+        groups.close();
+        habits.close();
+
     }
 }
