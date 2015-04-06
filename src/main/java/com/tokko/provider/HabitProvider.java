@@ -18,12 +18,14 @@ public class HabitProvider extends ContentProvider {
 
     public static final String TABLE_HABIT_GROUPS = "habitgroups";
     public static final String TABLE_HABITS = "habits";
+    public static final String TABLE_HABITS_IN_GROUP = "habitsingroup";
 
     public static final String ID = "_id";
     public static final String TITLE = "title";
     public static final String TIME = "time";
     public static final String WEEKDAY = "weekday";
     public static final String HABIT_GROUP = "habitgroup";
+    public static final String HABIT = "habit";
 
     private static final String TABLE_REPEATING = "repeating";
 
@@ -31,16 +33,19 @@ public class HabitProvider extends ContentProvider {
     private static final int KEY_HABIT_GROUPS = 1;
     private static final int KEY_REPEATING = 2;
     private static final int KEY_HABITS = 3;
+    private static final int KEY_HABITS_IN_GROUP = 4;
 
     private static final String ACTION_HABIT_GROUPS = "HABIT_GROUPS";
     private static final String ACTION_REPEATING = "REPEATING";
     private static final String ACTION_HABITS = "HABITS";
+    private static final String ACTION_HABITS_IN_GROUP = "HABITS_IN_GROUP";
 
     public static final Uri URI_GET_HABIT_INVALID = makeUri(KEY_INVALID, "SLASK");
 
     public static final Uri URI_HABIT_GROUPS = makeUri(KEY_HABIT_GROUPS, ACTION_HABIT_GROUPS);
     public static final Uri URI_REPEATING = makeUri(KEY_REPEATING, ACTION_REPEATING);
     public static final Uri URI_HABITS = makeUri(KEY_HABITS, ACTION_HABITS);
+    public static final Uri URI_HABITS_IN_GROUP = makeUri(KEY_HABITS_IN_GROUP, ACTION_HABITS_IN_GROUP);
 
     private static UriMatcher um;
     DatabaseOpenHelper db;
@@ -70,11 +75,13 @@ public class HabitProvider extends ContentProvider {
         sdb.delete(TABLE_HABIT_GROUPS, null, null);
         sdb.delete(TABLE_REPEATING, null, null);
         sdb.delete(TABLE_HABITS, null, null);
-        while (numEntries-- > 0) {
+        long[] groupIds = new long[numEntries];
+        while (--numEntries >= 0) {
             ContentValues cv = new ContentValues();
             cv.put(TITLE, habitGroupPrefix + numEntries);
             cv.put(TIME, habitGroupTimeStart + habitGroupTimeIncrement * numEntries);
             long id = sdb.insertOrThrow(TABLE_HABIT_GROUPS, null, cv);
+            groupIds[numEntries] = id;
             for(int i = 1; i < 5; i++){
                 cv.clear();
                 cv.put(HABIT_GROUP, id);
@@ -82,14 +89,23 @@ public class HabitProvider extends ContentProvider {
                 sdb.insertOrThrow(TABLE_REPEATING, null, cv);
             }
         }
-        while(numHabits-- > 0){
+        long[] habitIds = new long[numHabits];
+        while(--numHabits >= 0){
             ContentValues cv = new ContentValues();
             cv.put(TITLE, "HABIT"+numHabits);
-            sdb.insertOrThrow(TABLE_HABITS, null, cv);
+            long id = sdb.insertOrThrow(TABLE_HABITS, null, cv);
+            habitIds[numHabits] = id;
+        }
+        for (long groupId : groupIds) {
+            for (int j = 0; j < habitIds.length / 2; j++) {
+                ContentValues cv = new ContentValues();
+                cv.put(HABIT_GROUP, groupId);
+                cv.put(HABIT, habitIds[j]);
+                sdb.insertOrThrow(TABLE_HABITS_IN_GROUP, null, cv);
+            }
         }
         sdb.setTransactionSuccessful();
         sdb.endTransaction();
-        getContext().getContentResolver().notifyChange(URI_HABIT_GROUPS, null);
     }
 
     public static String whereEquals(String field){
@@ -175,6 +191,10 @@ public class HabitProvider extends ContentProvider {
                 c = sdb.query(TABLE_HABITS, projection, selection, selectionArgs, null, null, sortOrder);
                 c.setNotificationUri(getContext().getContentResolver(), URI_HABITS);
                 return c;
+            case KEY_HABITS_IN_GROUP:
+                c = sdb.query(TABLE_HABITS_IN_GROUP, projection, selection, selectionArgs, null, null, sortOrder);
+                c.setNotificationUri(getContext().getContentResolver(), URI_HABITS_IN_GROUP);
+                return c;
             default:
                 throw new IllegalStateException("Unknown uri");
         }
@@ -214,6 +234,7 @@ public class HabitProvider extends ContentProvider {
             db.execSQL(CREATE_HABIT_GROUPS);
             db.execSQL(CREATE_HABIT_GROUPS_REPEAT);
             db.execSQL(CREATE_TABLE_HABITS);
+            db.execSQL(CREATE_TABLE_HABITS_IN_GROUP);
         }
 
         private static final String CREATE_HABIT_GROUPS = "CREATE TABLE IF NOT EXISTS " + TABLE_HABIT_GROUPS + "(" +
@@ -223,7 +244,7 @@ public class HabitProvider extends ContentProvider {
 
         private static final String CREATE_HABIT_GROUPS_REPEAT = "CREATE TABLE IF NOT EXISTS " + TABLE_REPEATING + "(" +
                 ID + " INTEGER PRIMARY KEY, " +
-                HABIT_GROUP + " INTEGER NOT NULL, " +
+                HABIT_GROUP + " INTEGER NOT NULL REFERENCES " + TABLE_HABIT_GROUPS + "("+ID+") ON DELETE CASCADE, " +
                 WEEKDAY + " INTEGER NOT NULL);";
 
         private static final String CREATE_TABLE_HABITS = "CREATE TABLE IF NOT EXISTS " + TABLE_HABITS + "(" +
@@ -231,11 +252,17 @@ public class HabitProvider extends ContentProvider {
                 TITLE + " TEXT NOT NULL UNIQUE ON CONFLICT REPLACE, " +
                 TIME + " INTEGER NOT NULL DEFAULT 0);";
 
+        private final static String CREATE_TABLE_HABITS_IN_GROUP = "CREATE TABLE IF NOT EXISTS " + TABLE_HABITS_IN_GROUP + "(" +
+                ID + " INTEGER PRIMARY KEY, " +
+                HABIT_GROUP + " INTEGER REFERENCES " + TABLE_HABIT_GROUPS + "(" + ID + ") ON DELETE CASCADE, " +
+                HABIT + " INTEGER REFERENCES " + TABLE_HABITS + "("+ID+") ON DELETE CASCADE);";
+
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
             db.execSQL("DROP TABLE IF EXISTS " + TABLE_HABIT_GROUPS);
             db.execSQL("DROP TABLE IF EXISTS " + TABLE_REPEATING);
             db.execSQL("DROP TABLE IF EXISTS " + TABLE_HABITS);
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_HABITS_IN_GROUP);
             onCreate(db);
             newVersion = oldVersion-1;
             for (int version = oldVersion; version <= newVersion; version++) {

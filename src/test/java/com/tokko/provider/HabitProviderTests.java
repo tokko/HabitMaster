@@ -246,4 +246,13 @@ public class HabitProviderTests extends TestCase {
         repeating2.close();
         c.close();
     }
+
+    @Test
+    public void getConnections(){
+        Cursor c = mContentResolver.query(HabitProvider.URI_HABITS_IN_GROUP, null, null, null, null);
+        assertNotNull(c);
+        assertTrue(c.getCount() > 0);
+        assertEquals(3, c.getColumnCount());
+        c.close();
+    }
 }
