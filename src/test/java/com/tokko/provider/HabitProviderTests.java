@@ -6,6 +6,8 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
 
+import com.tokko.BuildConfig;
+
 import junit.framework.Assert;
 import junit.framework.TestCase;
 
@@ -16,12 +18,13 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowContentResolver;
 
 import java.util.logging.Handler;
 
-@Config(emulateSdk = 18, manifest = "app/src/main/AndroidManifest.xml")
+@Config(emulateSdk = 19, constants = BuildConfig.class, manifest = "app/src/main/AndroidManifest.xml")
 @RunWith(RobolectricTestRunner.class)
 public class HabitProviderTests extends TestCase {
     private static final String HABIT_GROUP_PREFIX = "HabitGroup";
@@ -35,7 +38,7 @@ public class HabitProviderTests extends TestCase {
     @Before
     public void setup() {
         mProvider = new HabitProvider();
-        mContentResolver = Robolectric.application.getContentResolver();
+        mContentResolver = RuntimeEnvironment.application.getContentResolver();
         mProvider.onCreate();
         ShadowContentResolver.registerProvider(HabitProvider.AUTHORITY, mProvider);
         mProvider.seed(NUM_HABIT_GROUPS, HABIT_GROUP_PREFIX, HABIT_GROUP_START_TIME, HABIT_GROUP_TIME_INCREMENT, NUM_HABITS);
