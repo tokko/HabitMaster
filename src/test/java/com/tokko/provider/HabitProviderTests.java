@@ -237,7 +237,7 @@ public class HabitProviderTests extends TestCase {
         Uri insertedUri = mContentResolver.insert(HabitProvider.URI_REPEATING, cv);
         long newRowId = ContentUris.parseId(insertedUri);
         Cursor repeating2 = mContentResolver.query(HabitProvider.URI_REPEATING, null, null, null, null);
-        assertEquals(repeating.getCount()+1, repeating2.getCount());
+        assertEquals(repeating.getCount() + 1, repeating2.getCount());
         Cursor c = mContentResolver.query(HabitProvider.URI_REPEATING, null, HabitProvider.whereID(), HabitProvider.idArgs(newRowId), null);
         assertNotNull(c);
         assertTrue(c.moveToFirst());
@@ -265,9 +265,9 @@ public class HabitProviderTests extends TestCase {
         c.moveToFirst();
         long habitGroup = c.getLong(c.getColumnIndex(HabitProvider.HABIT_GROUP));
         int deleted = mContentResolver.delete(HabitProvider.URI_HABITS_IN_GROUP, HabitProvider.whereEquals(HabitProvider.HABIT_GROUP), HabitProvider.idArgs(habitGroup));
-        assertEquals(NUM_HABITS/2, deleted);
+        assertEquals(NUM_HABITS / 2, deleted);
         Cursor c2 = mContentResolver.query(HabitProvider.URI_HABITS_IN_GROUP, null, null, null, null);
-        assertEquals(c.getCount()-deleted, c2.getCount());
+        assertEquals(c.getCount() - deleted, c2.getCount());
         for(c2.moveToFirst(); !c.isAfterLast(); c.moveToNext())
             assertTrue(c2.getLong(c.getColumnIndex(HabitProvider.HABIT_GROUP)) != habitGroup);
         c.close();
@@ -277,6 +277,7 @@ public class HabitProviderTests extends TestCase {
     @Test
     public void testInsertConnection(){
         Cursor c = mContentResolver.query(HabitProvider.URI_HABITS_IN_GROUP, null, null, null, null);
+        int origCount = c.getCount();
         Cursor groups = mContentResolver.query(HabitProvider.URI_HABIT_GROUPS, null, null, null, null);
         Cursor habits = mContentResolver.query(HabitProvider.URI_HABITS, null, null, null, null);
         groups.moveToLast();
@@ -286,7 +287,7 @@ public class HabitProviderTests extends TestCase {
         ContentValues cv = new ContentValues();
         cv.put(HabitProvider.HABIT, habitId);
         cv.put(HabitProvider.HABIT_GROUP, groupId);
-        Uri newRowUri = mContentResolver.insert(HabitProvider.URI_HABIT_GROUPS, cv);
+        Uri newRowUri = mContentResolver.insert(HabitProvider.URI_HABITS_IN_GROUP, cv);
         long newId = ContentUris.parseId(newRowUri);
         assertTrue(newId != -1);
         Cursor c2 = mContentResolver.query(HabitProvider.URI_HABITS_IN_GROUP, null, HabitProvider.whereID(), HabitProvider.idArgs(newId), null);
@@ -297,11 +298,28 @@ public class HabitProviderTests extends TestCase {
         assertEquals(habitId, c2.getLong(c.getColumnIndex(HabitProvider.HABIT)));
         c2.close();
         c2 = mContentResolver.query(HabitProvider.URI_HABITS_IN_GROUP, null, null, null, null);
-        assertEquals(c.getCount()+1, c2.getCount());
+        assertEquals(origCount+1, c2.getCount());
         c.close();
         c2.close();
         groups.close();
         habits.close();
+    }
 
+    @Test
+    public void testGetConnectedGroups(){
+        Cursor c = mContentResolver.query(HabitProvider.URI_HABIT_GROUPS, null, null, null, null);
+        c.moveToFirst();
+        long id = c.getLong(c.getColumnIndex(HabitProvider.ID));
+        c.close();
+        c = mContentResolver.query(HabitProvider.URI_HABITS_WITH_CONNECTION, null, HabitProvider.whereEquals(HabitProvider.HABIT_GROUP), HabitProvider.idArgs(id), null);
+        assertNotNull(c);
+        assertTrue(c.moveToFirst());
+        assertEquals(NUM_HABITS, c.getCount());
+        int connected = 0;
+        for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext())
+            if(c.isNull(c.getColumnIndex(HabitProvider.HABIT_GROUP))) connected++;
+            else connected--;
+        assertEquals(0, connected);
+        c.close();
     }
 }

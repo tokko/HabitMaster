@@ -34,11 +34,13 @@ public class HabitProvider extends ContentProvider {
     private static final int KEY_REPEATING = 2;
     private static final int KEY_HABITS = 3;
     private static final int KEY_HABITS_IN_GROUP = 4;
+    private static final int KEY_HABITS_WITH_CONNECTION = 5;
 
     private static final String ACTION_HABIT_GROUPS = "HABIT_GROUPS";
     private static final String ACTION_REPEATING = "REPEATING";
     private static final String ACTION_HABITS = "HABITS";
     private static final String ACTION_HABITS_IN_GROUP = "HABITS_IN_GROUP";
+    private static final String ACTION_HABITS_WITH_CONNECTION = "HABITS_WITH_CONNECTION";
 
     public static final Uri URI_GET_HABIT_INVALID = makeUri(KEY_INVALID, "SLASK");
 
@@ -46,6 +48,7 @@ public class HabitProvider extends ContentProvider {
     public static final Uri URI_REPEATING = makeUri(KEY_REPEATING, ACTION_REPEATING);
     public static final Uri URI_HABITS = makeUri(KEY_HABITS, ACTION_HABITS);
     public static final Uri URI_HABITS_IN_GROUP = makeUri(KEY_HABITS_IN_GROUP, ACTION_HABITS_IN_GROUP);
+    public static final Uri URI_HABITS_WITH_CONNECTION = makeUri(KEY_HABITS_WITH_CONNECTION, ACTION_HABITS_WITH_CONNECTION);
 
     private static UriMatcher um;
     DatabaseOpenHelper db;
@@ -207,6 +210,13 @@ public class HabitProvider extends ContentProvider {
             case KEY_HABITS_IN_GROUP:
                 c = sdb.query(TABLE_HABITS_IN_GROUP, projection, selection, selectionArgs, null, null, sortOrder);
                 c.setNotificationUri(getContext().getContentResolver(), URI_HABITS_IN_GROUP);
+                return c;
+             case KEY_HABITS_WITH_CONNECTION:
+                 final String subSelection = "SELECT * FROM " + TABLE_HABITS_IN_GROUP + " WHERE " + HABIT_GROUP + "=?";
+                 final String query = "SELECT h.*, hg."+HABIT_GROUP+ " FROM " + TABLE_HABITS + " h OUTER LEFT JOIN (" + subSelection + ") hg on h."+ID+"=hg."+HABIT;
+                c = sdb.rawQuery(query, selectionArgs);
+                c.setNotificationUri(getContext().getContentResolver(), URI_HABITS_IN_GROUP);
+                c.setNotificationUri(getContext().getContentResolver(), URI_HABITS);
                 return c;
             default:
                 throw new IllegalStateException("Unknown uri");
