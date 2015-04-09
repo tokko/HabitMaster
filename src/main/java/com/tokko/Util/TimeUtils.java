@@ -23,4 +23,9 @@ public class TimeUtils {
     public static int extractMinutes(long time) {
         return (int) ((time % DateTimeConstants.MILLIS_PER_HOUR) / DateTimeConstants.MILLIS_PER_MINUTE);
     }
+
+    public static long timeToLong(String time){
+        String[] split = time.split(":");
+        return Integer.valueOf(split[0])*DateTimeConstants.MILLIS_PER_HOUR + Integer.valueOf(split[1])*DateTimeConstants.MILLIS_PER_MINUTE;
+    }
 }
