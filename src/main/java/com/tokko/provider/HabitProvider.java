@@ -19,6 +19,7 @@ public class HabitProvider extends ContentProvider {
     public static final String TABLE_HABIT_GROUPS = "habitgroups";
     public static final String TABLE_HABITS = "habits";
     public static final String TABLE_HABITS_IN_GROUP = "habitsingroup";
+    public static final String VIEW_REMINDERS = "reminders";
 
     public static final String ID = "_id";
     public static final String TITLE = "title";
@@ -35,12 +36,14 @@ public class HabitProvider extends ContentProvider {
     private static final int KEY_HABITS = 3;
     private static final int KEY_HABITS_IN_GROUP = 4;
     private static final int KEY_HABITS_WITH_CONNECTION = 5;
+    private static final int KEY_REMINDERS = 6;
 
     private static final String ACTION_HABIT_GROUPS = "HABIT_GROUPS";
     private static final String ACTION_REPEATING = "REPEATING";
     private static final String ACTION_HABITS = "HABITS";
     private static final String ACTION_HABITS_IN_GROUP = "HABITS_IN_GROUP";
     private static final String ACTION_HABITS_WITH_CONNECTION = "HABITS_WITH_CONNECTION";
+    private static final String ACTION_REMINDERS = "REMINDERS";
 
     public static final Uri URI_GET_HABIT_INVALID = makeUri(KEY_INVALID, "SLASK");
 
@@ -49,6 +52,7 @@ public class HabitProvider extends ContentProvider {
     public static final Uri URI_HABITS = makeUri(KEY_HABITS, ACTION_HABITS);
     public static final Uri URI_HABITS_IN_GROUP = makeUri(KEY_HABITS_IN_GROUP, ACTION_HABITS_IN_GROUP);
     public static final Uri URI_HABITS_WITH_CONNECTION = makeUri(KEY_HABITS_WITH_CONNECTION, ACTION_HABITS_WITH_CONNECTION);
+    public static final Uri URI_REMINDERS = makeUri(KEY_REMINDERS, ACTION_REMINDERS);
 
     private static UriMatcher um;
     DatabaseOpenHelper db;
@@ -218,6 +222,13 @@ public class HabitProvider extends ContentProvider {
                 c.setNotificationUri(getContext().getContentResolver(), URI_HABITS_IN_GROUP);
                 c.setNotificationUri(getContext().getContentResolver(), URI_HABITS);
                 return c;
+            case KEY_REMINDERS:
+                c = sdb.query(VIEW_REMINDERS, projection, selection, selectionArgs, null, null, sortOrder);
+                c.setNotificationUri(getContext().getContentResolver(), URI_HABITS_IN_GROUP);
+                c.setNotificationUri(getContext().getContentResolver(), URI_HABITS);
+                c.setNotificationUri(getContext().getContentResolver(), URI_HABIT_GROUPS);
+                c.setNotificationUri(getContext().getContentResolver(), URI_REMINDERS);
+                return c;
             default:
                 throw new IllegalStateException("Unknown uri");
         }
@@ -258,6 +269,7 @@ public class HabitProvider extends ContentProvider {
             db.execSQL(CREATE_HABIT_GROUPS_REPEAT);
             db.execSQL(CREATE_TABLE_HABITS);
             db.execSQL(CREATE_TABLE_HABITS_IN_GROUP);
+            db.execSQL(CREATE_VIEW_REMINDERS);
         }
 
         private static final String CREATE_HABIT_GROUPS = "CREATE TABLE IF NOT EXISTS " + TABLE_HABIT_GROUPS + "(" +
@@ -280,8 +292,18 @@ public class HabitProvider extends ContentProvider {
                 HABIT_GROUP + " INTEGER REFERENCES " + TABLE_HABIT_GROUPS + "(" + ID + ") ON DELETE CASCADE, " +
                 HABIT + " INTEGER REFERENCES " + TABLE_HABITS + "("+ID+") ON DELETE CASCADE);";
 
+        private final static String CREATE_VIEW_REMINDERS = "CREATE VIEW IF NOT EXISTS " + VIEW_REMINDERS + " AS SELECT " +
+                "hg." + ID + ", " +
+                "hg." + TIME + ", " +
+                "h." + TITLE + ", " +
+                "r." + WEEKDAY +
+                " FROM " + TABLE_HABIT_GROUPS + " hg JOIN " + TABLE_HABITS_IN_GROUP + " con ON hg."+ID + "=con."+HABIT_GROUP +
+                " JOIN " + TABLE_HABITS + " h ON h." + ID + "=con."+HABIT +
+                " JOIN " + TABLE_REPEATING + " r ON r."+HABIT_GROUP + "=hg." + ID;
+
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+            db.execSQL("DROP VIEW IF EXISTS " + VIEW_REMINDERS);
             db.execSQL("DROP TABLE IF EXISTS " + TABLE_HABIT_GROUPS);
             db.execSQL("DROP TABLE IF EXISTS " + TABLE_REPEATING);
             db.execSQL("DROP TABLE IF EXISTS " + TABLE_HABITS);

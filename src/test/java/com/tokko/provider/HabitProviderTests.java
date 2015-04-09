@@ -322,4 +322,14 @@ public class HabitProviderTests extends TestCase {
         assertEquals(0, connected);
         c.close();
     }
+
+    @Test
+    public void testGetReminders(){
+        Cursor c = mContentResolver.query(HabitProvider.URI_REMINDERS, null, null, null, null);
+        assertNotNull(c);
+        assertTrue(c.moveToFirst());
+        assertEquals(NUM_HABIT_GROUPS*NUM_HABITS/2*4, c.getCount());
+        assertEquals(4, c.getColumnCount());
+        c.close();
+    }
 }
