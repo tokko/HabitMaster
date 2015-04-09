@@ -293,7 +293,7 @@ public class HabitProvider extends ContentProvider {
                 HABIT + " INTEGER REFERENCES " + TABLE_HABITS + "("+ID+") ON DELETE CASCADE);";
 
         private final static String CREATE_VIEW_REMINDERS = "CREATE VIEW IF NOT EXISTS " + VIEW_REMINDERS + " AS SELECT " +
-                "hg." + ID + ", " +
+                "con." + ID + ", " +
                 "hg." + TIME + ", " +
                 "h." + TITLE + ", " +
                 "r." + WEEKDAY +
