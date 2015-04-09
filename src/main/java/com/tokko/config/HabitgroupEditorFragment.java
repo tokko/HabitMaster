@@ -236,13 +236,21 @@ public class HabitgroupEditorFragment extends ListFragment implements View.OnCli
     @Override
     public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
         CursorLoader cl = new CursorLoader(getActivity());
-        cl.setUri(HabitProvider.URI_HABITS);
+        cl.setUri(HabitProvider.URI_HABITS_WITH_CONNECTION);
+        cl.setSelectionArgs(HabitProvider.idArgs(id));
         return cl;
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
         adapter.swapCursor(cursor);
+        int pos = cursor.getPosition();
+        ArrayList<Integer> checked = new ArrayList<>();
+        for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext())
+            if(!cursor.isNull(cursor.getColumnIndex(HabitProvider.HABIT_GROUP)))
+                checked.add(cursor.getPosition());
+        cursor.moveToPosition(pos);
+        setItemsChecked(checked);
     }
 
     @Override
