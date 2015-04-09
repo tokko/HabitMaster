@@ -8,33 +8,30 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.support.v4.app.ListFragment;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.CursorLoader;
-import android.support.v4.content.Loader;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.CursorAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.SimpleCursorAdapter;
 
 import com.tokko.R;
 import com.tokko.Util.TimeUtils;
 import com.tokko.provider.HabitProvider;
+import com.tokko.provider.HabitWithConnection;
 
 import org.joda.time.DateTimeConstants;
 
 import java.util.ArrayList;
 
-public class HabitgroupEditorFragment extends ListFragment implements View.OnClickListener, LoaderManager.LoaderCallbacks<Cursor> {
+public class HabitgroupEditorFragment extends ListFragment implements View.OnClickListener {
     protected static final String EXTRA_ID = "extra_id";
     private static final String EXTRA_TITLE = "extra_title";
     private static final String EXTRA_HOUR = "extra_hour";
     private static final String EXTRA_MINUTE = "extra_minute";
     private static final String EXTRA_WEEKDAYS = "extra_weekdays";
-    private static final String EXTRA_CHECKED = "extra_checked";
+    private static final String EXTRA_ITEMS = "extra_items";
 
     private Button okButton;
     private Button deleteButton;
@@ -49,7 +46,7 @@ public class HabitgroupEditorFragment extends ListFragment implements View.OnCli
     private ArrayList<Integer> weekdays;
     private String title;
 
-    private CursorAdapter adapter;
+    private ArrayAdapter<HabitWithConnection> adapter;
 
     public static HabitgroupEditorFragment newInstance(long id){
         Bundle b = new Bundle();
@@ -92,7 +89,6 @@ public class HabitgroupEditorFragment extends ListFragment implements View.OnCli
                 c.close();
             }
         }
-        adapter = new SimpleCursorAdapter(getActivity(), android.R.layout.simple_list_item_multiple_choice, null, new String[]{HabitProvider.TITLE}, new int[]{android.R.id.text1}, 0);
     }
 
     @Override
@@ -122,13 +118,29 @@ public class HabitgroupEditorFragment extends ListFragment implements View.OnCli
 
         setListAdapter(adapter);
         getListView().setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
-        if(savedInstanceState != null)
-            setItemsChecked(savedInstanceState.getIntegerArrayList(EXTRA_CHECKED));
+        ArrayList<HabitWithConnection> data;
+        if(savedInstanceState != null) {
+            data = savedInstanceState.getParcelableArrayList(EXTRA_ITEMS);
+            adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_multiple_choice, android.R.id.text1, data);
+        }
+        else{
+            Cursor cursor = getActivity().getContentResolver().query(HabitProvider.URI_HABITS_WITH_CONNECTION, null, null, HabitProvider.idArgs(id), null);
+            data = HabitWithConnection.fromCursor(cursor);
+            adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_multiple_choice, android.R.id.text1, data);
+        }
+        setListAdapter(adapter);
+        setItemsChecked(data);
     }
 
-    private void setItemsChecked(ArrayList<Integer> checked){
-        for (Integer integer : checked)
-            getListView().setItemChecked(integer, true);
+    @Override
+    public void onListItemClick(ListView l, View v, int position, long id) {
+        if(getListView().isItemChecked(position)) adapter.getItem(position).habitGroup = this.id;
+        else adapter.getItem(position).habitGroup = null;
+    }
+
+    private void setItemsChecked(ArrayList<HabitWithConnection> data){
+        for (int i = 0; i<data.size(); i++)
+            getListView().setItemChecked(i, data.get(i).habitGroup != null);
     }
 
     @Override
@@ -145,13 +157,11 @@ public class HabitgroupEditorFragment extends ListFragment implements View.OnCli
     @Override
     public void onStart() {
         super.onStart();
-        getLoaderManager().initLoader(0, null, this);
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        getLoaderManager().destroyLoader(0);
     }
 
     @Override
@@ -162,7 +172,7 @@ public class HabitgroupEditorFragment extends ListFragment implements View.OnCli
         outState.putInt(EXTRA_HOUR, hour);
         outState.putInt(EXTRA_MINUTE, minute);
         outState.putIntegerArrayList(EXTRA_WEEKDAYS, weekdays);
-        outState.putIntegerArrayList(EXTRA_CHECKED, getCheckedItems());
+        outState.putParcelableArrayList(EXTRA_ITEMS, getItems());
     }
 
     @Override
@@ -204,17 +214,16 @@ public class HabitgroupEditorFragment extends ListFragment implements View.OnCli
 
     protected void persistHabits(ArrayList<ContentProviderOperation> ops) {
         ops.add(ContentProviderOperation.newDelete(HabitProvider.URI_HABITS_IN_GROUP).withSelection(HabitProvider.whereEquals(HabitProvider.HABIT_GROUP), HabitProvider.idArgs(id)).build());
-        for(Integer integer : getCheckedItems())
-                ops.add(ContentProviderOperation.newInsert(HabitProvider.URI_HABITS_IN_GROUP).withValue(HabitProvider.HABIT_GROUP, id).withValue(HabitProvider.HABIT, getListView().getItemIdAtPosition(integer)).build());
-        }
+        ArrayList<HabitWithConnection> data = getItems();
+        ops.addAll(HabitWithConnection.toInsertOperations(data));
+    }
 
-    private ArrayList<Integer> getCheckedItems() {
-        ArrayList<Integer> checked = new ArrayList<>();
-        for (int i = 0; i < getListView().getCount(); i++) {
-            if (getListView().isItemChecked(i))
-                checked.add(i);
+    private ArrayList<HabitWithConnection> getItems() {
+        ArrayList<HabitWithConnection> items = new ArrayList<>();
+        for (int i = 0; i < adapter.getCount(); i++) {
+            items.add(adapter.getItem(i));
         }
-        return checked;
+        return items;
     }
 
     protected void persistWeekdays(ArrayList<ContentProviderOperation> ops){
@@ -232,33 +241,6 @@ public class HabitgroupEditorFragment extends ListFragment implements View.OnCli
     public void onWeekdaysPicked(ArrayList<Integer> weekdays) {
         this.weekdays = weekdays;
     }
-
-    @Override
-    public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
-        CursorLoader cl = new CursorLoader(getActivity());
-        cl.setUri(HabitProvider.URI_HABITS_WITH_CONNECTION);
-        cl.setSelectionArgs(HabitProvider.idArgs(id));
-        return cl;
-    }
-
-    @Override
-    public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
-        adapter.swapCursor(cursor);
-        int pos = cursor.getPosition();
-        ArrayList<Integer> checked = new ArrayList<>();
-        for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext())
-            if(!cursor.isNull(cursor.getColumnIndex(HabitProvider.HABIT_GROUP)))
-                checked.add(cursor.getPosition());
-        cursor.moveToPosition(pos);
-        setItemsChecked(checked);
-    }
-
-    @Override
-    public void onLoaderReset(Loader<Cursor> cursorLoader) {
-        adapter.swapCursor(null);
-    }
-
-
 
 public interface HabitGroupEditorHost{
         public void editorPickWeekdays(ArrayList<Integer> currentWeekdays);
