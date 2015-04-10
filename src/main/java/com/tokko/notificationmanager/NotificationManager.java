@@ -22,7 +22,7 @@ public class NotificationManager extends BroadcastReceiver {
     public static void scheduleReminders(Context context){
         Cursor reminders = context.getContentResolver().query(HabitProvider.URI_REMINDERS, null, null, null, null);
         AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-
+        cancelAllAlarms(context);
         for (reminders.moveToFirst(); !reminders.isAfterLast(); reminders.moveToNext()){
             String title = reminders.getString(reminders.getColumnIndex(HabitProvider.TITLE));
             long time = reminders.getLong(reminders.getColumnIndex(HabitProvider.TIME));
@@ -53,7 +53,8 @@ public class NotificationManager extends BroadcastReceiver {
 
     public static void cancelAllAlarms(Context context) {
         AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        while(--id>0)
-            am.cancel(getPendingIntent(context, id));
+        while(id>=0)
+            am.cancel(getPendingIntent(context, id--));
+        id = 0;
     }
 }
