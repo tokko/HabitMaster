@@ -31,6 +31,8 @@ import java.util.List;
 @RunWith(RobolectricTestRunner.class)
 public class NotificationManagerTests {
     private Context context;
+    private ShadowAlarmManager sam;
+
     @Before
     public void setup(){
         context = RuntimeEnvironment.application.getApplicationContext();
@@ -46,19 +48,27 @@ public class NotificationManagerTests {
                 return mc;
             }
         });
+        AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        sam = Shadows.shadowOf(am);
     }
 
     @Test
-    public void notificationManagerSchedulesAlarms(){
+    public void scheduleRemders_CorrectNumberOfAlarms(){
         NotificationManager.ScheduleReminders(context);
 
-        AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        ShadowAlarmManager sam = Shadows.shadowOf(am);
         List<ShadowAlarmManager.ScheduledAlarm> scheduledAlarms = sam.getScheduledAlarms();
         Assert.assertNotNull(scheduledAlarms);
         Assert.assertEquals(3, scheduledAlarms.size());
 
+    }
+
+    @Test
+    public void scheduleReminders_AlarmsAtCorrectTime(){
+        NotificationManager.ScheduleReminders(context);
+        List<ShadowAlarmManager.ScheduledAlarm> scheduledAlarms = sam.getScheduledAlarms();
         Assert.assertEquals(TimeUtils.getCurrentTime().withTime(12, 0, 0, 0).getMillis(), scheduledAlarms.get(0).triggerAtTime);
-       // Assert.assertEquals(2, scheduledAlarms.get(1).triggerAtTime);
+        Assert.assertEquals(TimeUtils.getCurrentTime().withTime(12, 0, 0, 0).withDayOfWeek(2).getMillis(), scheduledAlarms.get(1).triggerAtTime);
+        Assert.assertEquals(TimeUtils.getCurrentTime().withTime(12, 0, 0, 0).withDayOfWeek(2).getMillis(), scheduledAlarms.get(2).triggerAtTime);
+
     }
 }
