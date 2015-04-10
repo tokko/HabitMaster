@@ -19,7 +19,7 @@ public class NotificationManager extends BroadcastReceiver {
     private static final String EXTRA_GROUP_TITLE = "extratitle";
 
     private static int id = 0;
-    public static void ScheduleReminders(Context context){
+    public static void scheduleReminders(Context context){
         Cursor reminders = context.getContentResolver().query(HabitProvider.URI_REMINDERS, null, null, null, null);
         AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
 
@@ -33,14 +33,27 @@ public class NotificationManager extends BroadcastReceiver {
                     .withField(DateTimeFieldType.dayOfWeek(), weekday);
             if(dt.isBefore(TimeUtils.getCurrentTime().getMillis()))
                 dt = dt.withFieldAdded(DurationFieldType.weekyears(), 1);
-            Intent intent = new Intent(ACTION_HABIT_GROUP_TRIGGER+id++).putExtra(EXTRA_GROUP_TITLE, title);
-            PendingIntent pendingIntent = PendingIntent.getBroadcast(context.getApplicationContext(), (int) System.currentTimeMillis(), intent, PendingIntent.FLAG_UPDATE_CURRENT);
-            am.set(AlarmManager.RTC_WAKEUP, dt.getMillis(), pendingIntent);
+            am.set(AlarmManager.RTC_WAKEUP, dt.getMillis(), getPendingIntent(context, id++, title));
         }
         reminders.close();
     }
+
+    private static PendingIntent getPendingIntent(Context context, int i){
+        return getPendingIntent(context, i, null);
+    }
+    private static PendingIntent getPendingIntent(Context context, int i, String title){
+        Intent intent = new Intent(String.format("%s%d", ACTION_HABIT_GROUP_TRIGGER, i)).putExtra(EXTRA_GROUP_TITLE, title);
+        return PendingIntent.getBroadcast(context.getApplicationContext(), (int) System.currentTimeMillis(), intent, PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
     @Override
     public void onReceive(Context context, Intent intent) {
 
+    }
+
+    public static void cancelAllAlarms(Context context) {
+        AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        while(--id>0)
+            am.cancel(getPendingIntent(context, id));
     }
 }

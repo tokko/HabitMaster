@@ -1,6 +1,7 @@
 package com.tokko.provider;
 
 import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.MatrixCursor;
@@ -37,7 +38,6 @@ public class NotificationManagerTests {
     public void setup(){
         context = RuntimeEnvironment.application.getApplicationContext();
         TimeUtils.setCurrentTime(new DateTime().withDate(2010, 5, 3).withTime(6, 0, 0, 0).withField(DateTimeFieldType.dayOfWeek(), 1));
-        final DateTime dt = TimeUtils.getCurrentTime().withFieldAdded(DurationFieldType.hours(), 1);
         ShadowContentResolver.registerProvider(HabitProvider.AUTHORITY, new HabitProvider(){
             @Override
             public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
@@ -53,8 +53,8 @@ public class NotificationManagerTests {
     }
 
     @Test
-    public void scheduleRemders_CorrectNumberOfAlarms(){
-        NotificationManager.ScheduleReminders(context);
+    public void scheduleReminders_CorrectNumberOfAlarms(){
+        NotificationManager.scheduleReminders(context);
 
         List<ShadowAlarmManager.ScheduledAlarm> scheduledAlarms = sam.getScheduledAlarms();
         Assert.assertNotNull(scheduledAlarms);
@@ -64,11 +64,18 @@ public class NotificationManagerTests {
 
     @Test
     public void scheduleReminders_AlarmsAtCorrectTime(){
-        NotificationManager.ScheduleReminders(context);
+        NotificationManager.scheduleReminders(context);
         List<ShadowAlarmManager.ScheduledAlarm> scheduledAlarms = sam.getScheduledAlarms();
         Assert.assertEquals(TimeUtils.getCurrentTime().withTime(12, 0, 0, 0).getMillis(), scheduledAlarms.get(0).triggerAtTime);
         Assert.assertEquals(TimeUtils.getCurrentTime().withTime(12, 0, 0, 0).withDayOfWeek(2).getMillis(), scheduledAlarms.get(1).triggerAtTime);
         Assert.assertEquals(TimeUtils.getCurrentTime().withTime(12, 0, 0, 0).withDayOfWeek(2).getMillis(), scheduledAlarms.get(2).triggerAtTime);
+    }
 
+    @Test
+    public void scheduleReminders_CancelAlarms(){
+        NotificationManager.scheduleReminders(context);
+        NotificationManager.cancelAllAlarms(context);
+        List<ShadowAlarmManager.ScheduledAlarm> scheduledAlarms = sam.getScheduledAlarms();
+        Assert.assertEquals(0, scheduledAlarms.size());
     }
 }
