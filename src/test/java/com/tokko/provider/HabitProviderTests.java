@@ -24,7 +24,7 @@ import org.robolectric.shadows.ShadowContentResolver;
 
 import java.util.logging.Handler;
 
-@Config(emulateSdk = 19, constants = BuildConfig.class, manifest = "src/main/AndroidManifest.xml")
+@Config(emulateSdk = 19, constants = BuildConfig.class, manifest = Config.NONE)
 @RunWith(RobolectricTestRunner.class)
 public class HabitProviderTests extends TestCase {
     private static final String HABIT_GROUP_PREFIX = "HabitGroup";
