@@ -1,8 +1,10 @@
 package com.tokko.provider;
 
 import android.app.AlarmManager;
+import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.net.Uri;
@@ -26,6 +28,8 @@ import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowAlarmManager;
 import org.robolectric.shadows.ShadowApplication;
 import org.robolectric.shadows.ShadowContentResolver;
+import org.robolectric.shadows.ShadowNotification;
+import org.robolectric.shadows.ShadowNotificationManager;
 
 import java.util.List;
 
@@ -34,6 +38,7 @@ import java.util.List;
 public class NotificationManagerTests {
     private Context context;
     private ShadowAlarmManager sam;
+    private ShadowNotificationManager snm;
 
     @Before
     public void setup(){
@@ -42,15 +47,26 @@ public class NotificationManagerTests {
         ShadowContentResolver.registerProvider(HabitProvider.AUTHORITY, new HabitProvider(){
             @Override
             public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
-                MatrixCursor mc = new MatrixCursor(new String[]{ID, TIME, TITLE, WEEKDAY});
-                mc.addRow(new Object[]{1, TimeUtils.timeToLong("12:00"), "1", 1});
-                mc.addRow(new Object[]{1, TimeUtils.timeToLong("12:00"), "1", 2});
-                mc.addRow(new Object[]{2, TimeUtils.timeToLong("12:00"), "2", 2});
-                return mc;
+                if(uri.toString().equals(URI_REMINDERS.toString())) {
+                    MatrixCursor mc = new MatrixCursor(new String[]{ID, TIME, WEEKDAY});
+                    mc.addRow(new Object[]{1, TimeUtils.timeToLong("12:00"), 1});
+                    mc.addRow(new Object[]{2, TimeUtils.timeToLong("12:00"), 2});
+                    mc.addRow(new Object[]{3, TimeUtils.timeToLong("12:00"), 2});
+                    return mc;
+                }
+                if(uri.toString().equals(URI_HABITS_IN_GROUP.toString())) {
+                    MatrixCursor mc = new MatrixCursor(new String[]{ID, TIME, TITLE, HABIT_GROUP});
+                    mc.addRow(new Object[]{1, TimeUtils.timeToLong("12:00"), "TITLE1", 1});
+                    mc.addRow(new Object[]{2, TimeUtils.timeToLong("12:00"), "TITLE2", 1});
+                    return mc;
+                }
+                return null;
             }
         });
         AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         sam = Shadows.shadowOf(am);
+
+        snm = Shadows.shadowOf(((android.app.NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE)));
     }
 
     @Test
@@ -94,5 +110,19 @@ public class NotificationManagerTests {
         }
 
         Assert.assertTrue(receiverFound);
+    }
+
+    @Test
+    public void onReceive_NotificationsAreDisplayed(){
+        String habitTitle = "TITLE";
+        new NotificationManager().onReceive(context, new Intent().putExtra(NotificationManager.EXTRA_GROUP_ID, (long)1));
+        List<Notification> allNotifications = snm.getAllNotifications();
+
+        Assert.assertNotNull(allNotifications);
+        Assert.assertEquals(2, allNotifications.size());
+        for (Notification notification : allNotifications){
+            ShadowNotification sn = Shadows.shadowOf(notification);
+            Assert.assertTrue(sn.getContentTitle().toString().startsWith(habitTitle));
+        }
     }
 }
