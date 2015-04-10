@@ -24,7 +24,7 @@ import org.robolectric.shadows.ShadowContentResolver;
 
 import java.util.logging.Handler;
 
-@Config(emulateSdk = 19, constants = BuildConfig.class, manifest = "app/src/main/AndroidManifest.xml")
+@Config(emulateSdk = 19, constants = BuildConfig.class, manifest = "src/main/AndroidManifest.xml")
 @RunWith(RobolectricTestRunner.class)
 public class HabitProviderTests extends TestCase {
     private static final String HABIT_GROUP_PREFIX = "HabitGroup";
@@ -328,8 +328,8 @@ public class HabitProviderTests extends TestCase {
         Cursor c = mContentResolver.query(HabitProvider.URI_REMINDERS, null, null, null, null);
         assertNotNull(c);
         assertTrue(c.moveToFirst());
-        assertEquals(NUM_HABIT_GROUPS*NUM_HABITS/2*4, c.getCount());
-        assertEquals(4, c.getColumnCount());
+        assertEquals(NUM_HABIT_GROUPS*4, c.getCount());
+        assertEquals(3, c.getColumnCount());
         c.close();
     }
 }

@@ -293,13 +293,10 @@ public class HabitProvider extends ContentProvider {
                 HABIT + " INTEGER REFERENCES " + TABLE_HABITS + "("+ID+") ON DELETE CASCADE);";
 
         private final static String CREATE_VIEW_REMINDERS = "CREATE VIEW IF NOT EXISTS " + VIEW_REMINDERS + " AS SELECT " +
-                "con." + ID + ", " +
+                "hg." + ID + ", " +
                 "hg." + TIME + ", " +
-                "h." + TITLE + ", " +
                 "r." + WEEKDAY +
-                " FROM " + TABLE_HABIT_GROUPS + " hg JOIN " + TABLE_HABITS_IN_GROUP + " con ON hg."+ID + "=con."+HABIT_GROUP +
-                " JOIN " + TABLE_HABITS + " h ON h." + ID + "=con."+HABIT +
-                " JOIN " + TABLE_REPEATING + " r ON r."+HABIT_GROUP + "=hg." + ID;
+                " FROM " + TABLE_HABIT_GROUPS + " hg JOIN " + TABLE_REPEATING + " r ON r."+HABIT_GROUP + "=hg." + ID;
 
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
