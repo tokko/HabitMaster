@@ -24,6 +24,7 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowAlarmManager;
+import org.robolectric.shadows.ShadowApplication;
 import org.robolectric.shadows.ShadowContentResolver;
 
 import java.util.List;
@@ -77,5 +78,21 @@ public class NotificationManagerTests {
         NotificationManager.cancelAllAlarms(context);
         List<ShadowAlarmManager.ScheduledAlarm> scheduledAlarms = sam.getScheduledAlarms();
         Assert.assertEquals(0, scheduledAlarms.size());
+    }
+
+    @Test
+    public void receiverRegistered(){
+        List<ShadowApplication.Wrapper> registeredReceivers = ShadowApplication.getInstance().getRegisteredReceivers();
+
+        Assert.assertFalse(registeredReceivers.isEmpty());
+
+        boolean receiverFound = false;
+        for (ShadowApplication.Wrapper wrapper : registeredReceivers) {
+            if (!receiverFound)
+                receiverFound = NotificationManager.class.getSimpleName().equals(
+                        wrapper.broadcastReceiver.getClass().getSimpleName());
+        }
+
+        Assert.assertTrue(receiverFound);
     }
 }

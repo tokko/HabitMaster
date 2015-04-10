@@ -26,7 +26,12 @@
         <provider
             android:name=".provider.HabitProvider"
             android:authorities="com.tokko.provider.HabitProvider"
+            android:exported="false"
             android:enabled="true" />
+
+        <receiver android:name=".notificationmanager.NotificationManager"
+            android:enabled="true"
+            android:exported="false" />
     </application>
 
 </manifest>
