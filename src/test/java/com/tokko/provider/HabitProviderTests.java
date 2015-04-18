@@ -10,6 +10,7 @@ import com.tokko.BuildConfig;
 
 import junit.framework.Assert;
 
+import org.apache.tools.ant.types.resources.comparators.Content;
 import org.joda.time.DateTimeConstants;
 import org.junit.Before;
 import org.junit.Test;
@@ -326,5 +327,27 @@ public class HabitProviderTests {
         org.junit.Assert.assertEquals(NUM_HABIT_GROUPS * 4, c.getCount());
         org.junit.Assert.assertEquals(3, c.getColumnCount());
         c.close();
+    }
+
+    @Test
+    public void insertHabitGroups(){
+        Cursor c = mContentResolver.query(HabitProvider.URI_HABIT_GROUPS, null, null, null, null);
+        int origCount = c.getCount();
+        c.close();
+        String title = "madafaka";
+        ContentValues cv = new ContentValues();
+        cv.put(HabitProvider.TITLE, title);
+        Uri uri = mContentResolver.insert(HabitProvider.URI_HABIT_GROUPS, cv);
+        Assert.assertNotNull(uri);
+        long id = ContentUris.parseId(uri);
+        Assert.assertTrue(id != -1);
+        c = mContentResolver.query(HabitProvider.URI_HABIT_GROUPS, null, null, null, null);
+        Assert.assertEquals(origCount+1, c.getCount());
+        c.close();
+        c = mContentResolver.query(HabitProvider.URI_HABIT_GROUPS, null, HabitProvider.whereID(), HabitProvider.idArgs(id), null);
+        Assert.assertNotNull(c);
+        Assert.assertTrue(c.moveToFirst());
+        Assert.assertEquals(1, c.getCount());
+        Assert.assertEquals(title, c.getString(c.getColumnIndex(HabitProvider.TITLE)));
     }
 }
