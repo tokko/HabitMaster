@@ -11,8 +11,10 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.os.Bundle;
 
+import com.tokko.BuildConfig;
+
 public class HabitProvider extends ContentProvider {
-    public static final String AUTHORITY = "com.tokko.provider.HabitProvider";
+    public static final String AUTHORITY = BuildConfig.APPLICATION_ID+".provider.HabitProvider";
 
     public static final String DATABASE_NAME = "habitmaster";
 

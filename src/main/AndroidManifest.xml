@@ -25,7 +25,7 @@
         </activity>
         <provider
             android:name=".provider.HabitProvider"
-            android:authorities="com.tokko.provider.HabitProvider"
+            android:authorities="${applicationId}.provider.HabitProvider"
             android:exported="false"
             android:enabled="true" />
 
