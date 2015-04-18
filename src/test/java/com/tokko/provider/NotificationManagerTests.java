@@ -80,7 +80,12 @@ public class NotificationManagerTests {
     }
 
     @Test
-    public void scheduleReminders_AlarmsAtCorrectTime(){
+    public void scheduleReminders_AlarmsAtCorrectTime() {
+        NotificationManager.scheduleReminders(context);
+        assertAlarmsAtCorrectTime();
+    }
+
+    public void assertAlarmsAtCorrectTime(){
         NotificationManager.scheduleReminders(context);
         List<ShadowAlarmManager.ScheduledAlarm> scheduledAlarms = sam.getScheduledAlarms();
         Assert.assertEquals(TimeUtils.getCurrentTime().withTime(12, 0, 0, 0).getMillis(), scheduledAlarms.get(0).triggerAtTime);
@@ -124,5 +129,13 @@ public class NotificationManagerTests {
             ShadowNotification sn = Shadows.shadowOf(notification);
             Assert.assertTrue(sn.getContentTitle().toString().startsWith(habitTitle));
         }
+    }
+
+    @Test
+    public void onReceive_AlarmsAreRescheduled(){
+        scheduleReminders_AlarmsAtCorrectTime();
+        onReceive_NotificationsAreDisplayed();
+        TimeUtils.setCurrentTime(TimeUtils.getCurrentTime().withTime(12, 0, 0, 0));
+        assertAlarmsAtCorrectTime();
     }
 }

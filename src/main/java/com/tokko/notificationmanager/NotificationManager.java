@@ -62,6 +62,7 @@ public class NotificationManager extends BroadcastReceiver {
             nm.notify((int) System.currentTimeMillis(), nb.build());
         }
         habits.close();
+        scheduleReminders(context.getApplicationContext());
     }
 
     public static void cancelAllAlarms(Context context) {
