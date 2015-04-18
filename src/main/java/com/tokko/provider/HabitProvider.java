@@ -191,6 +191,13 @@ public class HabitProvider extends ContentProvider {
                     getContext().getContentResolver().notifyChange(URI_HABIT_GROUPS, null);
                 }
                 return uri;
+             case KEY_HABITS:
+                id = sdb.insert(TABLE_HABITS, null, values);
+                if(id > -1){
+                    uri = ContentUris.withAppendedId(uri, id);
+                    getContext().getContentResolver().notifyChange(URI_HABITS, null);
+                }
+                return uri;
             default:
                 throw new IllegalStateException("Unknown URI: " + uri.toString());
         }

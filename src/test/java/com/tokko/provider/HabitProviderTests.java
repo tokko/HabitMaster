@@ -353,4 +353,12 @@ public class HabitProviderTests {
         cv.put(HabitProvider.TITLE, title);
         assertInsertSuccessful(HabitProvider.URI_HABIT_GROUPS, cv, HabitProvider.TITLE);
     }
+
+    @Test
+    public void insertHabit(){
+        String title = "madafaka";
+        ContentValues cv = new ContentValues();
+        cv.put(HabitProvider.TITLE, title);
+        assertInsertSuccessful(HabitProvider.URI_HABITS, cv, HabitProvider.TITLE);
+    }
 }
