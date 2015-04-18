@@ -43,7 +43,7 @@ public class HabitgroupEditorFragment extends ListFragment implements View.OnCli
     private int hour;
     private int minute;
     private Button pickWeekdaysButton;
-    private ArrayList<Integer> weekdays;
+    private ArrayList<Integer> weekdays = new ArrayList<>();
     private String title;
 
     private ArrayAdapter<HabitWithConnection> adapter;

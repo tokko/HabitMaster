@@ -10,9 +10,13 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.CursorAdapter;
 import android.support.v4.widget.SimpleCursorAdapter;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
 
+import com.tokko.R;
 import com.tokko.provider.HabitProvider;
 
 public class HabitMasterListFragment extends ListFragment implements LoaderManager.LoaderCallbacks<Cursor> {
@@ -28,6 +32,23 @@ public class HabitMasterListFragment extends ListFragment implements LoaderManag
             uri = Uri.parse(savedInstanceState.getString(EXTRA_URI, ""));
         else if(getArguments() != null)
             uri = Uri.parse(getArguments().getString(EXTRA_URI, ""));
+        setHasOptionsMenu(true);
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.editor_menu,menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.list_add:
+                host.onAddListItem();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     public static HabitMasterListFragment newInstance(Uri uri){
@@ -93,9 +114,9 @@ public class HabitMasterListFragment extends ListFragment implements LoaderManag
 
     public interface HabitMasterListFragmentCallbacks {
 
-        public void onListItemEdit(long id);
+        void onListItemEdit(long id);
 
-        public void onAddListItem();
+        void onAddListItem();
     }
 
 }
