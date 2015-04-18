@@ -10,7 +10,6 @@ import com.tokko.BuildConfig;
 
 import junit.framework.Assert;
 
-import org.apache.tools.ant.types.resources.comparators.Content;
 import org.joda.time.DateTimeConstants;
 import org.junit.Before;
 import org.junit.Test;
@@ -329,25 +328,29 @@ public class HabitProviderTests {
         c.close();
     }
 
-    @Test
-    public void insertHabitGroups(){
-        Cursor c = mContentResolver.query(HabitProvider.URI_HABIT_GROUPS, null, null, null, null);
+    private void assertInsertSuccessful(Uri uri, ContentValues cv, String field){
+        Cursor c = mContentResolver.query(uri, null, null, null, null);
         int origCount = c.getCount();
         c.close();
-        String title = "madafaka";
-        ContentValues cv = new ContentValues();
-        cv.put(HabitProvider.TITLE, title);
-        Uri uri = mContentResolver.insert(HabitProvider.URI_HABIT_GROUPS, cv);
-        Assert.assertNotNull(uri);
-        long id = ContentUris.parseId(uri);
+        Uri newUri = mContentResolver.insert(uri, cv);
+        Assert.assertNotNull(newUri);
+        long id = ContentUris.parseId(newUri);
         Assert.assertTrue(id != -1);
-        c = mContentResolver.query(HabitProvider.URI_HABIT_GROUPS, null, null, null, null);
+        c = mContentResolver.query(uri, null, null, null, null);
         Assert.assertEquals(origCount+1, c.getCount());
         c.close();
-        c = mContentResolver.query(HabitProvider.URI_HABIT_GROUPS, null, HabitProvider.whereID(), HabitProvider.idArgs(id), null);
+        c = mContentResolver.query(uri, null, HabitProvider.whereID(), HabitProvider.idArgs(id), null);
         Assert.assertNotNull(c);
         Assert.assertTrue(c.moveToFirst());
         Assert.assertEquals(1, c.getCount());
-        Assert.assertEquals(title, c.getString(c.getColumnIndex(HabitProvider.TITLE)));
+        Assert.assertEquals(cv.getAsString(field), c.getString(c.getColumnIndex(HabitProvider.TITLE)));
+    }
+
+    @Test
+    public void insertHabitGroup(){
+        String title = "madafaka";
+        ContentValues cv = new ContentValues();
+        cv.put(HabitProvider.TITLE, title);
+        assertInsertSuccessful(HabitProvider.URI_HABIT_GROUPS, cv, HabitProvider.TITLE);
     }
 }
