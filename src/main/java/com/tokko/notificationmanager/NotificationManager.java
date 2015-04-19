@@ -38,7 +38,8 @@ public class NotificationManager extends BroadcastReceiver {
             DateTime dt = TimeUtils.getCurrentTime()
                     .withTime(TimeUtils.extractHours(time), TimeUtils.extractMinutes(time), 0, 0)
                     .withField(DateTimeFieldType.dayOfWeek(), weekday);
-            if(dt.isBefore(TimeUtils.getCurrentTime().getMillis()))
+            DateTime now = TimeUtils.getCurrentTime();
+            if(dt.isBefore(now))
                 dt = dt.withFieldAdded(DurationFieldType.weekyears(), 1);
             am.set(AlarmManager.RTC_WAKEUP, dt.getMillis(), getPendingIntent(context, id++, habitGroupId));
         }
@@ -76,7 +77,8 @@ public class NotificationManager extends BroadcastReceiver {
         long groupId = intent.getLongExtra(EXTRA_GROUP_ID, -1);
         if(groupId == -1) throw new IllegalStateException("Invalid group id");
         android.app.NotificationManager nm = (android.app.NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-        Cursor habits = context.getContentResolver().query(HabitProvider.URI_HABITS_IN_GROUP, null, HabitProvider.whereEquals(HabitProvider.HABIT_GROUP), HabitProvider.idArgs(groupId), null);
+        Cursor habits = context.getContentResolver().query(HabitProvider.URI_HABITS_WITH_CONNECTION, null, HabitProvider.whereEquals(HabitProvider.HABIT_GROUP), HabitProvider.idArgs(groupId), null);
+        if(habits == null) return;
         for (habits.moveToFirst(); !habits.isAfterLast(); habits.moveToNext()){
             Notification.Builder nb = new Notification.Builder(context.getApplicationContext());
             nb.setAutoCancel(false);
