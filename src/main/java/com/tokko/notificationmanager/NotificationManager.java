@@ -30,6 +30,7 @@ public class NotificationManager extends BroadcastReceiver {
         Cursor reminders = context.getContentResolver().query(HabitProvider.URI_REMINDERS, null, null, null, null);
         AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         cancelAllAlarms(context);
+        if(reminders == null) return;
         for (reminders.moveToFirst(); !reminders.isAfterLast(); reminders.moveToNext()){
             long time = reminders.getLong(reminders.getColumnIndex(HabitProvider.TIME));
             int weekday = reminders.getInt(reminders.getColumnIndex(HabitProvider.WEEKDAY));
@@ -48,12 +49,12 @@ public class NotificationManager extends BroadcastReceiver {
         return getPendingIntent(context, i, -1);
     }
     private static PendingIntent getPendingIntent(Context context, int i, long id){
-        Intent intent = new Intent(String.format("%s%d", ACTION_HABIT_GROUP_TRIGGER, i)).putExtra(EXTRA_GROUP_ID, id);
+        Intent intent = new Intent(context.getApplicationContext(), NotificationManager.class).setAction(String.format("%s%d", ACTION_HABIT_GROUP_TRIGGER, i)).putExtra(EXTRA_GROUP_ID, id);
         return PendingIntent.getBroadcast(context.getApplicationContext(), (int) System.currentTimeMillis(), intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
     public static void registerSchedulingListener(final Context context){
-        Field[] fields = HabitProvider.class.getClass().getFields();
+        Field[] fields = HabitProvider.class.getFields();
         try {
             for (Field field : fields) {
                 if (field.getName().startsWith("URI_")) {
