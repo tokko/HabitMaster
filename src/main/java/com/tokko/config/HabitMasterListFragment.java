@@ -46,6 +46,9 @@ public class HabitMasterListFragment extends ListFragment implements LoaderManag
             case R.id.list_add:
                 host.onAddListItem();
                 return true;
+           case R.id.clear:
+               getActivity().getContentResolver().call(HabitProvider.URI_HABIT_GROUPS, "clear", null, null);
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }

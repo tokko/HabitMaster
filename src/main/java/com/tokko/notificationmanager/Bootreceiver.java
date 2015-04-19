@@ -8,6 +8,7 @@ public class Bootreceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        NotificationManager.registerSchedulingListener(context);
         NotificationManager.scheduleReminders(context.getApplicationContext());
     }
 }

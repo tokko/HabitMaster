@@ -75,16 +75,24 @@ public class HabitProvider extends ContentProvider {
         if(method.equals("seed")){
             seed(20, "HABITGROUP", 0, 1, 10);
         }
+        else if(method.equals("clear")){
+            clear();
+        }
         return super.call(method, arg, extras);
     }
 
-    public void seed(int numEntries, String habitGroupPrefix, long habitGroupTimeStart, long habitGroupTimeIncrement, int numHabits) {
-        sdb = db.getWritableDatabase();
-        sdb.beginTransaction();
+    private void clear(){
         sdb.delete(TABLE_HABIT_GROUPS, null, null);
         sdb.delete(TABLE_REPEATING, null, null);
         sdb.delete(TABLE_HABITS, null, null);
         sdb.delete(TABLE_HABITS_IN_GROUP, null, null);
+        getContext().getContentResolver().notifyChange(URI_HABIT_GROUPS, null);
+        getContext().getContentResolver().notifyChange(URI_HABITS, null);
+    }
+    public void seed(int numEntries, String habitGroupPrefix, long habitGroupTimeStart, long habitGroupTimeIncrement, int numHabits) {
+        sdb = db.getWritableDatabase();
+        sdb.beginTransaction();
+        clear();
         long[] groupIds = new long[numEntries];
         while (--numEntries >= 0) {
             ContentValues cv = new ContentValues();

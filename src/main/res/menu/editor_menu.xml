@@ -5,4 +5,6 @@
         android1:id="@+id/list_add"
         android1:title="Add"
         android:showAsAction="always" />
+    <item android1:id="@+id/clear"
+        android1:title="Clear" />
 </menu>

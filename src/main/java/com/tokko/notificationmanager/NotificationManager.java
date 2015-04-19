@@ -6,8 +6,11 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.database.ContentObserver;
 import android.database.Cursor;
 import android.media.RingtoneManager;
+import android.net.Uri;
+import android.os.Handler;
 
 import com.tokko.Util.TimeUtils;
 import com.tokko.provider.HabitProvider;
@@ -15,6 +18,8 @@ import com.tokko.provider.HabitProvider;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeFieldType;
 import org.joda.time.DurationFieldType;
+
+import java.lang.reflect.Field;
 
 public class NotificationManager extends BroadcastReceiver {
     public static final String ACTION_HABIT_GROUP_TRIGGER = "ACTION_HABIT_GROUP_TRIGGER";
@@ -47,6 +52,24 @@ public class NotificationManager extends BroadcastReceiver {
         return PendingIntent.getBroadcast(context.getApplicationContext(), (int) System.currentTimeMillis(), intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
+    public static void registerSchedulingListener(final Context context){
+        Field[] fields = HabitProvider.class.getClass().getFields();
+        try {
+            for (Field field : fields) {
+                if (field.getName().startsWith("URI_")) {
+                    Uri uri = (Uri) field.get(null);
+                    context.getApplicationContext().getContentResolver().registerContentObserver(uri, false ,new ContentObserver(new Handler()){
+                        @Override
+                        public void onChange(boolean selfChange) {
+                            scheduleReminders(context);
+                        }
+                    });
+                }
+            }
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+    }
     @Override
     public void onReceive(Context context, Intent intent) {
         long groupId = intent.getLongExtra(EXTRA_GROUP_ID, -1);
