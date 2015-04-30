@@ -20,6 +20,8 @@ import org.joda.time.DateTimeFieldType;
 import org.joda.time.DurationFieldType;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 
 public class NotificationManager extends BroadcastReceiver {
     public static final String ACTION_HABIT_GROUP_TRIGGER = "ACTION_HABIT_GROUP_TRIGGER";
@@ -38,9 +40,8 @@ public class NotificationManager extends BroadcastReceiver {
             DateTime dt = TimeUtils.getCurrentTime()
                     .withTime(TimeUtils.extractHours(time), TimeUtils.extractMinutes(time), 0, 0)
                     .withField(DateTimeFieldType.dayOfWeek(), weekday);
-            DateTime now = TimeUtils.getCurrentTime();
-            if(dt.isBefore(now))
-                dt = dt.withFieldAdded(DurationFieldType.weekyears(), 1);
+            if(dt.isBeforeNow() || dt.isEqualNow()) continue;
+                //dt = dt.withFieldAdded(DurationFieldType.weeks(), 1);
             am.set(AlarmManager.RTC_WAKEUP, dt.getMillis(), getPendingIntent(context, id++, habitGroupId));
         }
         reminders.close();
